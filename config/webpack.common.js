@@ -1,6 +1,7 @@
 const webpack = require('webpack')
 const helpers = require('./helpers')
 const CssToJSON = require('../build/CssToJson')
+const bodyParser = require('body-parser');
 
 const bannerText = `/**
 * @name JSON Editor
@@ -15,7 +16,7 @@ const bannerText = `/**
 */`
 module.exports = {
   entry: {
-    jsoneditor: './src/core.js'
+    jsoneditor: './src/core_anastasia.js'
   },
   resolve: {
     extensions: ['.js']
@@ -70,6 +71,23 @@ module.exports = {
   devServer: {
     contentBase: helpers.root('.'),
     historyApiFallback: true,
-    port: 8080
+    port: 8080,
+    inline: true,
+    publicPath: '/',
+    setup(app) {
+
+      app.use(bodyParser.json());
+
+      app.get("/get/json-schema", function (req, res) {
+        console.log(req);
+        res.send("GET res sent from webpack dev server")
+      })
+
+      app.post("/post/json-schema", bodyParser.json(), function (req, res) {
+        console.log(req.body);
+        res.send("POST res sent from webpack dev server")
+      })
+
+    }
   }
 }

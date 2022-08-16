@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <script src="../../dist/jsoneditor.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous">
+    </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+  <title>object-no-duplicated-id</title>
+</head>
+
+<body>
+
+  <div id="jstree">
+    <!-- in this example the tree is populated from inline HTML -->
+    <ul>
+      <li>Root node 1
+        <ul>
+          <li id="child_node_1">Child node 1</li>
+          <li>Child node 2</li>
+        </ul>
+      </li>
+      <li>Root node 2</li>
+    </ul>
+  </div>
+
+  <script>
+
+    // $(function () {
+    //   $.ajax({
+    //     async: true,
+    //     type: "GET",
+    //     url: "http://localhost:8080/tests/pages",
+    //     // url: "C:/Users/ana19067/gitlab/json-editor",
+    //     dataType: "json",
+    //     success: function (json) {
+    //       createJSTree(json);
+    //     },
+
+    //     error: function (xhr, ajaxOptions, thrownError) {
+    //       alert(xhr.status);
+    //       alert(thrownError);
+    //     }
+    //   });
+    // });
+
+    // function createJSTree(jsondata) {
+    //   $('#jstree').jstree({
+    //     'core': {
+    //       'data': jsondata,
+    //     },
+    //     "plugins": ["themes", "json_data", "ui"]
+    //   });
+
+    //   $('#jstree').on("changed.jstree", function (e, data) {
+    //     console.log(data.selected);
+    //   });
+
+    //   $('button').on('click', function () {
+    //     $('#jstree').jstree(true).select_node('child_node_1');
+    //   });
+    // }
+
+    $('#jstree').jstree({
+      'core': {
+        'data': [
+          'Simple root node',
+          {
+            'text': 'Root node 2',
+            'state': {
+              'opened': true,
+              'selected': true
+            },
+            'children': [
+              { 'text': 'Child 1' },
+              'Child 2'
+            ]
+          }
+        ]
+      }
+    });
+
+    // -------------------------
+
+    // $(function () {
+    //   // create an instance
+    //   $('#jstree').jstree();
+    //   // bind to events triggered on the tree
+    //   $('#jstree').on("changed.jstree", function (e, data) {
+    //     console.log(data.selected);
+    //   });
+    //   // interact with the tree
+    //   $('button').on('click', function () {
+    //     $('#jstree').jstree(true).select_node('child_node_1');
+    //   });
+    // });
+
+    // $("#jstree").jstree({
+    //   "core": {
+    //     "themes": {
+    //       "responsive": false
+    //     },
+    //     // so that create works
+    //     "check_callback": true,
+    //     'data': {
+    //       'url': function (node) {
+    //         return 'https://github.com/json-editor/json-editor/issues?q=is%3Aissue+get'; // Demo API endpoint -- Replace this URL with your set endpoint
+    //       },
+    //       'data': function (node) {
+    //         return {
+    //           'parent': node.id
+    //         };
+    //       }
+    //     }
+    //   },
+    //   "types": {
+    //     "default": {
+    //       "icon": "fa fa-folder text-primary"
+    //     },
+    //     "file": {
+    //       "icon": "fa fa-file  text-primary"
+    //     }
+    //   },
+    //   "state": {
+    //     "key": "demo3"
+    //   },
+    //   "plugins": ["dnd", "state", "types"]
+    // });
+
+    // --------------------
+
+    // $('#jstree').jstree({
+    //   'core': {
+    //     'themes': { "stripes": true },
+    //     'data': {
+    //       'url': '/tests/pages/advanced.html',
+    //     }
+    //   },
+
+    //   "search": { 'fuzzy': false },
+
+    //   "types": {
+    //     "page": {
+    //       "icon": "flaticon2-warning text-danger"
+    //     },
+    //     "page_index": {
+    //       "icon": "flaticon2-warning text-danger"
+    //     }
+    //   },
+    //   "plugins": ["types", "state", "search"]
+
+    // }).one("restore_state.jstree", function () {
+    //   $(this).on("changed.jstree", function (e, data) {
+    //     data.instance.save_state();
+    //     location.href = data.instance.get_node(data.node, true).children('a').attr('href');
+    //   });
+    // });
+
+  </script>
+
+  <div class="container">
+    <div class="form-group">
+      <textarea id="value" class="form-control" rows="10"></textarea>
+    </div>
+    <button id="get-value" class='btn btn-secondary'>get value</button>
+    <hr>
+    <div id='form-container'></div>
+    <button id='submit' class='btn btn-secondary'>Submit</button>
+    <hr>
+  </div>
+
+  <script>
+    var formContainer = document.querySelector('#form-container')
+    var value = document.querySelector('#value')
+    var getValue = document.querySelector('#get-value')
+
+    var today = (offset) => {
+      var t = new Date()
+      t.setDate(t.getDate() + (offset || 0))
+      return t.toISOString().split('T')[0]
+    }
+
+    var schema = {
+      "title": "TestTemplate",
+      "description": "A representation of a person, company, organization, or place",
+      "template": "TestTemplate",
+      "type": "object",
+      "id": "form",
+      "properties": {
+        "building": {
+          "title": "Gebäude",
+          "type": "string",
+          "description": "reference (autocomplete)",
+          "format": "autocomplete",
+          "options": {
+            "autocomplete": {
+              "search": "search_smw",
+              "getResultValue": "getResultValue_smw",
+              "renderResult": "renderResult_smw",
+              "onSubmit": "onSubmit_smw",
+              "autoSelect": "true"
+            }
+          },
+          "query": "[[Category:LIMS/Location/Building]]|?-IsLocatedIn|?HasName|?HasImage",
+          "displayProperty": "HasName",
+          "renderProperty": "-IsLocatedIn",
+          "renderLabel": "Stockwerke:",
+          "default": ""
+        },
+        "level": {
+          "title": "Stockwerk",
+          "type": "string",
+          "description": "reference (autocomplete)",
+          "format": "autocomplete",
+          "options": {
+            "autocomplete": {
+              "search": "search_smw",
+              "getResultValue": "getResultValue_smw",
+              "renderResult": "renderResult_smw",
+              "onSubmit": "onSubmit_smw",
+              "autoSelect": "true"
+            }
+          },
+          "query": "[[Category:LIMS/Location/Floor]][[IsLocatedIn::$(building)]]|?-IsLocatedIn|?HasImage",
+          "watch": {
+            "building": "building"
+          },
+          "renderProperty": "-IsLocatedIn",
+          "renderLabel": "Räume:",
+          "default": ""
+        },
+        "room": {
+          "title": "Raum",
+          "type": "string",
+          "default": "",
+          "format": "autocomplete",
+          "options": {
+            "autocomplete": {
+              "search": "search_smw",
+              "getResultValue": "getResultValue_smw",
+              "renderResult": "renderResult_smw",
+              "onSubmit": "onSubmit_smw",
+              "autoSelect": "true"
+            }
+          },
+          "query": "[[Category:LIMS/Location/Room]][[IsLocatedIn::$(level)]]|?HasName|?HasImage",
+          "watch": {
+            "level": "level"
+          },
+          "renderProperty": "HasName",
+          "renderLabel": "Name:",
+          "default": ""
+        },
+        "time": {
+          "title": "Zeit",
+          'type': 'string',
+          'format': 'time',
+          'min': '11:00',
+          'max': '13:00',
+          'default': '12:00'
+        },
+        "date": {
+          "title": "Datum",
+          'type': 'string',
+          'format': 'date',
+          'min': '1970-01-01',
+          'max': '2100-01-01',
+          'default': today()
+        },
+        "datetimelocal": {
+          "title": "Lokales Datum",
+          'type': 'string',
+          'format': 'datetime-local',
+          'min': '1970-01-01T00:00',
+          'max': '2100-01-01T00:00',
+          'default': today() + 'T00:00'
+        }
+      }
+    }
+
+    var editor = new JSONEditor(formContainer, {
+      schema: schema,
+      theme: 'bootstrap4',
+      show_errors: 'always'
+    })
+
+    getValue.addEventListener('click', function () {
+      value.value = JSON.stringify(editor.getValue())
+      console.log(editor.getValue())
+    })
+
+    document.getElementById('submit').addEventListener('click', function () {
+      // Get the value from the editor
+      // value.value = JSON.stringify(editor.getValue())
+      // console.log(editor.getValue());
+
+      var url = "/post/json-schema"
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      // xhr.send(JSON.stringify({ data: "sent from client" }));
+      xhr.send(JSON.stringify(editor.getValue()));
+      xhr.addEventListener('load', function (e) {
+        console.log(e.target.response);
+      });
+    });
+
+  </script>
+
+</body>
+
+</html>
