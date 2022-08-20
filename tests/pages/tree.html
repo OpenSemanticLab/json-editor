@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>tree-editor</title>
+
+  <!-- json editor -->
+  <script src="../../dist/jsoneditor.js"></script>
+  <script src="https://unpkg.com/vanilla-picker@2.10.0/dist/vanilla-picker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+</head>
+<body>
+
+<textarea class="debug" cols="30" rows="10"></textarea>
+<button class='get-value'>Get Value</button>
+<div class='container'></div>
+
+<script>
+  var container = document.querySelector('.container');
+  var debug = document.querySelector('.debug');
+
+  var schema = {
+    "type": "object",
+    "title": "string-tree-editor",
+    "properties": {
+      "field1": {
+        "type": "string",
+        "format": "tree",
+        "default": "empty",
+        "options": {
+          "tree": {
+            "value": "text",
+            "jstree": {
+              "core": {
+                "data": [
+                    {
+                      id: 'ajson1', parent: '#', text: 'Simple root node'
+                    },
+                    {
+                      id: 'ajson2', parent: '#', text: 'Root node 2'
+                    },
+                    {
+                      id: 'ajson3', parent: 'ajson2', text: 'Child 1'
+                    },
+                    {
+                      id: 'ajson4', parent: 'ajson2', text: 'Child 2'
+                    }
+                ]
+              },
+              "plugins" : ["wholerow"]
+            }
+          }
+        }
+      },
+      "field2": {
+        "type": "string",
+        "format": "tree",
+        "default": "empty2",
+        "options": {
+          "tree": {
+            "value": "id",
+            "jstree": {
+              "core": {
+                "data": [
+                    {
+                      id: 'ajson2', parent: '#', text: 'Root node 2'
+                    },
+                    {
+                      id: 'ajson3', parent: 'ajson2', text: 'Child 1'
+                    },
+                    {
+                      id: 'ajson4', parent: 'ajson2', text: 'Child 2'
+                    }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  var editor = new JSONEditor(container, {
+    schema: schema
+  });
+
+  document.querySelector('.get-value').addEventListener('click', function () {
+    debug.value = JSON.stringify(editor.getValue());
+  });
+
+</script>
+
+</body>
+</html>
