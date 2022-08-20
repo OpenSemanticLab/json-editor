@@ -39,6 +39,7 @@ import { TableEditor as table } from './table.js'
 import { UploadEditor as upload } from './upload.js'
 import { UuidEditor as uuid } from './uuid.js'
 import { ColorEditor as colorpicker } from './colorpicker.js'
+import { TreeEditor as tree } from './tree.js'
 
 export const editors = {
   ace,
@@ -77,5 +78,6 @@ export const editors = {
   table,
   upload,
   uuid,
-  colorpicker
+  colorpicker,
+  tree
 }
