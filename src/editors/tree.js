@@ -29,8 +29,10 @@ export class TreeEditor extends StringEditor {
       autoOpen: false,
       modal: true,
       buttons: {
-        OK: function () {},
-        Cancel: function () { window.jQuery(this).dialog('close') }
+        OK: function () { window.jQuery(this).dialog('close') }
+        // Cancel: function () {
+        //   window.jQuery(this).dialog('close')
+        // }
       }
     })
     this.input.addEventListener('click', (event) => {
@@ -96,7 +98,7 @@ export class TreeEditor extends StringEditor {
       mode: 'inline', /* show inline (no popup) */
       position: 'bottom' /* show in the bottom */
     }, this.defaults.options.tree || {}, this.options.tree || {}, {
-      parent: this.container
+      parent: this.popupContainer
     }))
     /*
     create a tree container inside the popup dialog
@@ -106,6 +108,15 @@ export class TreeEditor extends StringEditor {
     this.treeContainer.innerText = 'This is a tree container ID: ' + this.treeContainer.id
     this.popupContainer.appendChild(this.treeContainer)
     this.tree = window.jQuery('#' + this.treeContainer.id).jstree(this.options.tree.jstree)
+
+    this.tree.on('changed.jstree', (event, data) => {
+      // this.inputFieldName = this.container.dataset.schemapath.split('.')[1]
+      this.treeValue = data.node[this.options.tree.value]
+      this.treeId = data.node.id
+      this.setValue(this.treeValue)
+      // console.log('this.inputField ID :', window.jQuery('#' + this.treeContainer.id).attr('id'))
+      this.input.label = this.treeId
+    })
   }
 
   setVisible (visible) {
