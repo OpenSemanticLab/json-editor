@@ -110,12 +110,19 @@ export class TreeEditor extends StringEditor {
     this.tree = window.jQuery('#' + this.treeContainer.id).jstree(this.options.tree.jstree)
 
     this.tree.on('changed.jstree', (event, data) => {
-      // this.inputFieldName = this.container.dataset.schemapath.split('.')[1]
-      this.treeValue = data.node[this.options.tree.value]
-      this.treeId = data.node.id
-      this.setValue(this.treeValue)
-      // console.log('this.inputField ID :', window.jQuery('#' + this.treeContainer.id).attr('id'))
-      this.input.label = this.treeId
+      var checkedIds = []
+      var checkedValues = []
+      var selectedNodes = window.jQuery('#' + this.treeContainer.id).jstree('get_selected', true)
+      /* eslint-disable-next-line no-console */
+      console.log('selectedNodes: ', selectedNodes)
+      window.jQuery.each(selectedNodes, function () {
+        checkedIds.push(this.id)
+        checkedValues.push(this.text)
+      })
+      /* eslint-disable-next-line no-console */
+      console.log('checkedValues: ', checkedValues)
+      this.input.label = checkedIds
+      this.input.value = checkedValues
     })
   }
 
