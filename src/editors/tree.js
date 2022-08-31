@@ -23,7 +23,7 @@ export class TreeEditor extends StringEditor {
     create a popup dialog and show on input field click
     */
     window.jQuery('#' + this.popupContainer.id).dialog({
-      title: 'Tree Structure : ' + this.popupContainer.id,
+      title: 'Tree Structure : ' + this.popupContainer.id.split('-')[2],
       height: 400,
       width: 400,
       autoOpen: false,
@@ -39,6 +39,9 @@ export class TreeEditor extends StringEditor {
       /* eslint-disable-next-line no-console */
       console.log('input field eventListener : ', this.container.dataset.schemapath)
       window.jQuery('#' + this.popupContainer.id).dialog('open')
+    })
+    this.input.addEventListener('keydown', (event) => {
+      event.preventDefault()
     })
   }
 
@@ -109,6 +112,11 @@ export class TreeEditor extends StringEditor {
     this.popupContainer.appendChild(this.treeContainer)
     this.tree = window.jQuery('#' + this.treeContainer.id).jstree(this.options.tree.jstree)
 
+    /*
+    take over checked tree elements into corresponding input field
+    json output saves only id of each element
+    */
+    // this.input.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;')
     this.tree.on('changed.jstree', (event, data) => {
       var checkedIds = []
       var checkedValues = []
@@ -122,7 +130,29 @@ export class TreeEditor extends StringEditor {
       /* eslint-disable-next-line no-console */
       console.log('checkedValues: ', checkedValues)
       this.input.label = checkedIds
-      this.input.value = checkedValues
+      this.input.value = checkedValues.join(', ')
+
+      /* resize input field dynamically */
+      this.input.addEventListener('input', resizeInput) // bind the "resizeInput" callback on "input" event
+      resizeInput.call(this.input) // immediately call the function
+      function resizeInput (event) {
+        /* eslint-disable-next-line no-console */
+        console.log('this value: ', this.value.length)
+        if (this.value.length > 25) {
+          this.style.width = (this.value.length + 1) * 6 + 'px'
+          // this.style.width = Math.min((this.value.length + 1) * 6, 300) + 'px'
+          // this.style.height = 'auto'
+          // this.style.height = this.scrollHeight + 'px'
+        } else {
+          this.style.width = 165 + 'px'
+        }
+      }
+      // window.jQuery('textarea').each(function () {
+      //   this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;')
+      // }).on('input', function () {
+      //   this.style.height = 'auto'
+      //   this.style.height = (this.scrollHeight) + 'px'
+      // })
     })
   }
 
