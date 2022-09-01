@@ -11,9 +11,16 @@ export class TreeEditor extends StringEditor {
   postBuild () { /* 2. after getNumCols() */
     /* eslint-disable-next-line no-console */
     console.log('in postBuild fct')
-    /*
-    div
-    */
+    // window.jQuery('input').each(function () {
+    //   var style = window.jQuery(this).attr('style')
+    //   var textbox = window.jQuery(document.createElement('textarea')).attr('style', style)
+    //   window.jQuery(this).replaceWith(textbox)
+    // })
+    const btn = document.createElement('button')
+    btn.innerHTML = 'Clear'
+    this.container.appendChild(btn)
+
+    /* create a popup container */
     this.popupContainer = document.createElement('div')
     this.popupContainer.id = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-') /* jstree / jQuery doesn't like dots and hyphens within the id */
     /* eslint-disable-next-line no-console */
@@ -42,6 +49,11 @@ export class TreeEditor extends StringEditor {
     })
     this.input.addEventListener('keydown', (event) => {
       event.preventDefault()
+    })
+    btn.addEventListener('click', (event) => {
+      this.input.label = this.input.value = ''
+      this.input.style.width = 165 + 'px'
+      window.jQuery('#' + this.treeContainer.id).jstree('deselect_all')
     })
   }
 
@@ -129,20 +141,30 @@ export class TreeEditor extends StringEditor {
       })
       /* eslint-disable-next-line no-console */
       console.log('checkedValues: ', checkedValues)
-      this.input.label = checkedIds
-      this.input.value = checkedValues.join(', ')
 
-      /* resize input field dynamically */
-      this.input.addEventListener('input', resizeInput) // bind the "resizeInput" callback on "input" event
-      resizeInput.call(this.input) // immediately call the function
+      if (checkedIds.length === 0) {
+        this.input.label = this.input.value = ''
+      } else {
+        this.input.label = checkedIds
+        this.input.value = checkedValues.join(', ')
+
+        /* resize input field dynamically */
+        this.input.addEventListener('input', resizeInput) // bind the "resizeInput" callback on "input" event
+        resizeInput.call(this.input)
+      }
+
       function resizeInput (event) {
-        /* eslint-disable-next-line no-console */
-        console.log('this value: ', this.value.length)
         if (this.value.length > 25) {
-          this.style.width = (this.value.length + 1) * 6 + 'px'
-          // this.style.width = Math.min((this.value.length + 1) * 6, 300) + 'px'
+          /* expand width if needed and set max width */
+          this.style.width = Math.min((this.value.length + 1) * 6, 350) + 'px'
           // this.style.height = 'auto'
           // this.style.height = this.scrollHeight + 'px'
+          // var text = this.value.split(',')
+          // var str = text.join('.</br>')
+          // var str = text.join(',</n>')
+          // var str = text.join('\r\n')
+          // this.container.write(str)
+          // this.value = str
         } else {
           this.style.width = 165 + 'px'
         }
