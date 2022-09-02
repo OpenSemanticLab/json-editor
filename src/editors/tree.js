@@ -22,7 +22,7 @@ export class TreeEditor extends StringEditor {
 
     /* create a popup container */
     this.popupContainer = document.createElement('div')
-    this.popupContainer.id = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-') /* jstree / jQuery doesn't like dots and hyphens within the id */
+    this.popupContainer.id = 'popup-' + this.container.dataset.schemapath.replaceAll('.', '-') /* jQuery doesn't like dots and hyphens within the id */
     /* eslint-disable-next-line no-console */
     console.log('this.popupContainer.id: ', this.popupContainer.id)
     this.container.appendChild(this.popupContainer)
