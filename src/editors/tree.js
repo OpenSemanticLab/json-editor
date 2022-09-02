@@ -54,6 +54,7 @@ export class TreeEditor extends StringEditor {
       this.input.label = this.input.value = ''
       this.input.style.width = 165 + 'px'
       window.jQuery('#' + this.treeContainer.id).jstree('deselect_all')
+      window.jQuery('#' + this.treeContainer.id).jstree('close_all')
     })
   }
 
