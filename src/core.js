@@ -104,6 +104,14 @@ export class JSONEditor {
   getValue () {
     if (!this.ready) throw new Error('JSON Editor not ready yet. Make sure the load method is complete')
 
+    /* only for tree editor: show text value from json schema but save json schema id */
+    for (const [, value] of Object.entries(this.editors)) {
+      if (value.format === 'tree' && value.input.label !== null && typeof value.input.label !== 'undefined') {
+        var inputFieldName = value.input.name.split('[')[1].replace(/[^a-zA-Z0-9]/g, '')
+        this.root.getValue()[inputFieldName] = value.input.label
+      }
+    }
+
     return this.root.getValue()
   }
 

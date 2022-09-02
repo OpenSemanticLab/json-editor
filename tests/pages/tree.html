@@ -10,6 +10,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <!-- <link rel="stylesheet" href="/resources/demos/style.css"> -->
+  <!-- <script src="https://code.jquery.com/jquery-3.6.0.js"></script> -->
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>  
 </head>
 <body>
 
@@ -28,7 +33,7 @@
       "field1": {
         "type": "string",
         "format": "tree",
-        "default": "empty",
+        // "default": "empty",
         "options": {
           "tree": {
             "value": "text",
@@ -49,7 +54,7 @@
                     }
                 ]
               },
-              "plugins" : ["wholerow"]
+              "plugins" : ["wholerow", "checkbox"]
             }
           }
         }
@@ -57,10 +62,10 @@
       "field2": {
         "type": "string",
         "format": "tree",
-        "default": "empty2",
+        // "default": "empty2",
         "options": {
           "tree": {
-            "value": "id",
+            "value": "text",
             "jstree": {
               "core": {
                 "data": [
@@ -78,6 +83,10 @@
             }
           }
         }
+      },
+      "field3": {
+        "type": "string",
+        "default": "empty3"
       }
     }
   };
