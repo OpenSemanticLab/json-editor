@@ -8,6 +8,16 @@ import { StringEditor } from './string.js'
 import { extend } from '../utilities.js'
 
 export class TreeEditor extends StringEditor {
+  // build () {
+  //   this.options.format = 'textarea' /* Force format into "textarea" */
+  //   super.build()
+  //   this.input_type = this.schema.format /* Restore original format */
+  //   this.input.setAttribute('data-schemaformat', this.input_type)
+  //   // this.input.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;')
+  //   this.input.style.height = 20 + 'px'
+  //   this.input.style.width = 165 + 'px'
+  // }
+
   postBuild () { /* 2. after getNumCols() */
     /* eslint-disable-next-line no-console */
     console.log('in postBuild fct')
@@ -16,9 +26,13 @@ export class TreeEditor extends StringEditor {
     //   var textbox = window.jQuery(document.createElement('textarea')).attr('style', style)
     //   window.jQuery(this).replaceWith(textbox)
     // })
-    const btn = document.createElement('button')
-    btn.innerHTML = 'Clear'
-    this.container.appendChild(btn)
+    const btnAdd = document.createElement('button')
+    btnAdd.innerHTML = 'Add'
+    this.container.appendChild(btnAdd)
+
+    const btnClear = document.createElement('button')
+    btnClear.innerHTML = 'Clear'
+    this.container.appendChild(btnClear)
 
     /* create a popup container */
     this.popupContainer = document.createElement('div')
@@ -42,15 +56,42 @@ export class TreeEditor extends StringEditor {
         // }
       }
     })
-    this.input.addEventListener('click', (event) => {
-      /* eslint-disable-next-line no-console */
-      console.log('input field eventListener : ', this.container.dataset.schemapath)
+
+    this.input.id = 'input-' + this.container.dataset.schemapath.replaceAll('.', '-')
+    this.tagify = window.jQuery('#' + this.input.id).tagify()
+      .on('removeTag', function (event, tagName) { //  event.target.label, tagName.data.value
+        var nodeIds = window.jQuery(this).context.label
+        nodeIds.splice(tagName.index, 1)
+        // if (typeof this.popupContainer.id !== 'undefined') {
+        //   window.jQuery('#' + this.popupContainer.id).jstree('deselect_all')
+        // }
+      })
+
+    /* TODO : 1.search plugin
+              2.API ajax dynamic tree
+              3.deselect removed nodes
+    */
+    window.document.addEventListener('click', (event) => {
+      if (this.container.contains(event.target) && event.target.className === 'tagify__input') {
+        // if (!event.target.classList.contains('my-selector-class')) return;
+        /* eslint-disable-next-line no-console */
+        console.log('event target NAME: ', event.target.className)
+        window.jQuery('#' + this.popupContainer.id).dialog('open')
+      }
+    }, false)
+
+    window.document.addEventListener('keydown', (event) => {
+      if (this.container.contains(event.target) && event.target.className === 'tagify__input') {
+        // window.jQuery(this).trigger('change')
+        event.preventDefault()
+        event.stopPropagation()
+      }
+    }, false)
+
+    btnAdd.addEventListener('click', (event) => {
       window.jQuery('#' + this.popupContainer.id).dialog('open')
     })
-    this.input.addEventListener('keydown', (event) => {
-      event.preventDefault()
-    })
-    btn.addEventListener('click', (event) => {
+    btnClear.addEventListener('click', (event) => {
       this.input.label = this.input.value = ''
       this.input.style.width = 165 + 'px'
       window.jQuery('#' + this.treeContainer.id).jstree('deselect_all')
