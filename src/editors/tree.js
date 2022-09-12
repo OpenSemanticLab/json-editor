@@ -8,24 +8,10 @@ import { StringEditor } from './string.js'
 import { extend } from '../utilities.js'
 
 export class TreeEditor extends StringEditor {
-  // build () {
-  //   this.options.format = 'textarea' /* Force format into "textarea" */
-  //   super.build()
-  //   this.input_type = this.schema.format /* Restore original format */
-  //   this.input.setAttribute('data-schemaformat', this.input_type)
-  //   // this.input.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;')
-  //   this.input.style.height = 20 + 'px'
-  //   this.input.style.width = 165 + 'px'
-  // }
-
   postBuild () { /* 2. after getNumCols() */
     /* eslint-disable-next-line no-console */
     console.log('in postBuild fct')
-    // window.jQuery('input').each(function () {
-    //   var style = window.jQuery(this).attr('style')
-    //   var textbox = window.jQuery(document.createElement('textarea')).attr('style', style)
-    //   window.jQuery(this).replaceWith(textbox)
-    // })
+
     const btnAdd = document.createElement('button')
     btnAdd.innerHTML = 'Add'
     this.container.appendChild(btnAdd)
@@ -184,39 +170,11 @@ export class TreeEditor extends StringEditor {
       /* eslint-disable-next-line no-console */
       console.log('checkedValues: ', checkedValues)
 
-      if (checkedIds.length === 0) {
-        this.input.label = this.input.value = ''
-      } else {
-        this.input.label = checkedIds
-        this.input.value = checkedValues.join(', ')
-
-        /* resize input field dynamically */
-        this.input.addEventListener('input', resizeInput) // bind the "resizeInput" callback on "input" event
-        resizeInput.call(this.input)
-      }
-
-      function resizeInput (event) {
-        if (this.value.length > 25) {
-          /* expand width if needed and set max width */
-          this.style.width = Math.min((this.value.length + 1) * 6, 350) + 'px'
-          // this.style.height = 'auto'
-          // this.style.height = this.scrollHeight + 'px'
-          // var text = this.value.split(',')
-          // var str = text.join('.</br>')
-          // var str = text.join(',</n>')
-          // var str = text.join('\r\n')
-          // this.container.write(str)
-          // this.value = str
-        } else {
-          this.style.width = 165 + 'px'
-        }
-      }
-      // window.jQuery('textarea').each(function () {
-      //   this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;')
-      // }).on('input', function () {
-      //   this.style.height = 'auto'
-      //   this.style.height = (this.scrollHeight) + 'px'
-      // })
+      // if (checkedIds.length === 0) {
+      //   this.input.label = this.input.value = ''
+      // } else {
+      this.input.label = checkedIds
+      this.input.value = checkedValues.join(', ')
     })
   }
 

@@ -108,7 +108,11 @@ export class JSONEditor {
     for (const [, value] of Object.entries(this.editors)) {
       if (value.format === 'tree' && value.input.label !== null && typeof value.input.label !== 'undefined') {
         var inputFieldName = value.input.name.split('[')[1].replace(/[^a-zA-Z0-9]/g, '')
-        this.root.getValue()[inputFieldName] = value.input.label
+        if (value.input.label.length === 0) {
+          this.root.getValue()[inputFieldName] = ''
+        } else {
+          this.root.getValue()[inputFieldName] = value.input.label
+        }
       }
     }
 
