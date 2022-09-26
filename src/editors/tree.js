@@ -171,9 +171,9 @@ export class TreeEditor extends StringEditor {
 
     var searchString = ''
 
-    window.jQuery('#' + this.searchField.id).keypress(function (event) {
+    window.jQuery('#' + this.searchField.id).on('keypress', (event) => {
       if (event.key === 'Enter') {
-        searchString = window.jQuery(this).val()
+        searchString = window.jQuery(event.target).val()
         // var searchString = 'root'
         // window.jQuery(this).jstree('search', searchString)
         // window.jQuery('#plugins2').jstree(true).search(searchString)
@@ -186,9 +186,7 @@ export class TreeEditor extends StringEditor {
         /* eslint-disable-next-line no-console */
         console.log('searchString: ', searchString)
 
-        /* eslint-disable-next-line no-console */
-        console.log('searchString: ', window.jQuery('#tree-root-field1'))
-        window.jQuery('#tree-root-field1').jstree('search', searchString)
+        this.tree.jstree('search', searchString)
         // window.jQuery(this).hide()
         // window.no_results_message.insertAfter($search_field)
       }
