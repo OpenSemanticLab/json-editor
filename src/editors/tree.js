@@ -157,9 +157,6 @@ export class TreeEditor extends StringEditor {
     this.popupContainer.appendChild(this.treeContainer)
     this.tree = window.jQuery('#' + this.treeContainer.id).jstree(this.options.tree.jstree)
 
-    window.jQuery(this.tree).jstree({
-      plugins: ['search']
-    })
     // this.tree.on('search.jstree', (event, data) => {
     //   /* eslint-disable-next-line no-console */
     //   console.log('INSIDE LOOP: ')
