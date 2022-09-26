@@ -150,10 +150,13 @@ export class TreeEditor extends StringEditor {
     this.treeContainer = document.createElement('div')
     this.treeContainer.id = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-') /* jstree / jQuery doesn't like dots and hyphens within the id */
     this.treeContainer.innerText = 'This is a tree container ID: ' + this.treeContainer.id
-    this.searchField = document.createElement('INPUT')
-    this.searchField.setAttribute('type', 'text')
-    this.searchField.id = 'search-' + this.container.dataset.schemapath.replaceAll('.', '-')
-    this.popupContainer.appendChild(this.searchField)
+    if (this.options.tree.jstree.plugins && this.options.tree.jstree.plugins.includes('search')) {
+      this.searchField = document.createElement('INPUT')
+      this.searchField.setAttribute('type', 'text')
+      this.searchField.id = 'search-' + this.container.dataset.schemapath.replaceAll('.', '-')
+      this.searchField.addEventListener('keydown', (event) => { if (event.key === 'Enter') this.tree.jstree('search', this.searchField.value) })
+      this.popupContainer.appendChild(this.searchField)
+    }
     this.popupContainer.appendChild(this.treeContainer)
     this.tree = window.jQuery('#' + this.treeContainer.id).jstree(this.options.tree.jstree)
 
@@ -165,30 +168,6 @@ export class TreeEditor extends StringEditor {
     // ('#jstree').jstree(true).search($("#q").val());
     // window.jQuery('#' + this.treeContainer.id).jstree('search', true)
     // window.jQuery('#' + this.treeContainer.id).jstree('search', 'root') // .search('root')
-
-    var searchString = ''
-
-    window.jQuery('#' + this.searchField.id).on('keypress', (event) => {
-      if (event.key === 'Enter') {
-        searchString = window.jQuery(event.target).val()
-        // var searchString = 'root'
-        // window.jQuery(this).jstree('search', searchString)
-        // window.jQuery('#plugins2').jstree(true).search(searchString)
-        // window.jQuery('#' + this.treeContainer.id).jstree('search', '2')
-        /* eslint-disable-next-line no-console */
-        console.log('window.jQuery(this): ', window.jQuery(this.container))
-        /* eslint-disable-next-line no-console */
-        console.log('search field: ', this.id)
-
-        /* eslint-disable-next-line no-console */
-        console.log('searchString: ', searchString)
-
-        this.tree.jstree('search', searchString)
-        // window.jQuery(this).hide()
-        // window.no_results_message.insertAfter($search_field)
-      }
-    })
-    // window.jQuery('#' + this.treeContainer.id).jstree('search', searchString)
 
     // window.jQuery(function () {
     //   window.jQuery('#plugins2').jstree({
