@@ -45,14 +45,12 @@ export class TreeEditor extends StringEditor {
 
     this.input.id = 'input-' + this.container.dataset.schemapath.replaceAll('.', '-')
     this.tagify = window.jQuery('#' + this.input.id).tagify()
-      .on('removeTag', function (event, tagName) { //  event.target.label, tagName.data.value
-        var nodeIds = window.jQuery(this).context.label
-        nodeIds.splice(tagName.index, 1)
-        // if (typeof this.popupContainer.id !== 'undefined') {
-        //   window.jQuery('#' + this.popupContainer.id).jstree('deselect_all')
-        // }
+      .on('removeTag', (event, tagName) => { //  event.target.label, tagName.data.value
+        var treeId = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-')
+        var labels = event.target.label
+        window.jQuery('#' + treeId).jstree('deselect_node', '#' + labels[tagName.index])
+        labels.splice(tagName.index, 1)
       })
-
     /* TODO : 1.search plugin
               2.API ajax dynamic tree
               3.deselect removed nodes
@@ -149,7 +147,6 @@ export class TreeEditor extends StringEditor {
     */
     this.treeContainer = document.createElement('div')
     this.treeContainer.id = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-') /* jstree / jQuery doesn't like dots and hyphens within the id */
-    this.treeContainer.innerText = 'This is a tree container ID: ' + this.treeContainer.id
     if (this.options.tree.jstree.plugins && this.options.tree.jstree.plugins.includes('search')) {
       this.searchField = document.createElement('INPUT')
       this.searchField.setAttribute('type', 'text')
