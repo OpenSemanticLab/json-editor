@@ -45,7 +45,7 @@ export class TreeEditor extends StringEditor {
 
     this.input.id = 'input-' + this.container.dataset.schemapath.replaceAll('.', '-')
     this.tagify = window.jQuery('#' + this.input.id).tagify()
-      .on('removeTag', (event, tagName) => { //  event.target.label, tagName.data.value
+      .on('removeTag', (event, tagName) => { // tagName.data.value
         var treeId = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-')
         var labels = event.target.label
         window.jQuery('#' + treeId).jstree('deselect_node', '#' + labels[tagName.index])
@@ -61,7 +61,6 @@ export class TreeEditor extends StringEditor {
         /* eslint-disable-next-line no-console */
         console.log('event target NAME: ', event.target.className)
         window.jQuery('#' + this.popupContainer.id).dialog('open')
-        // window.jQuery('#' + this.treeContainer.id).jstree('search', '2')  // hier funktioniert die Suche
       }
     }, false)
 
@@ -149,44 +148,16 @@ export class TreeEditor extends StringEditor {
     this.treeContainer.id = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-') /* jstree / jQuery doesn't like dots and hyphens within the id */
     if (this.options.tree.jstree.plugins && this.options.tree.jstree.plugins.includes('search')) {
       this.searchField = document.createElement('INPUT')
-      this.searchField.setAttribute('type', 'text')
+      this.searchField.setAttribute('type', 'search')
+      this.searchField.setAttribute('placeholder', 'Search..')
       this.searchField.id = 'search-' + this.container.dataset.schemapath.replaceAll('.', '-')
-      this.searchField.addEventListener('keydown', (event) => { if (event.key === 'Enter') this.tree.jstree('search', this.searchField.value) })
+      // this.searchField.addEventListener('keydown', (event) => { if (event.key === 'Enter') this.tree.jstree('search', this.searchField.value) })
+      this.searchField.addEventListener('keydown', (event) => { this.tree.jstree('search', this.searchField.value) })
+      this.searchField.addEventListener('click', (event) => { this.tree.jstree('search', true) })
       this.popupContainer.appendChild(this.searchField)
     }
     this.popupContainer.appendChild(this.treeContainer)
     this.tree = window.jQuery('#' + this.treeContainer.id).jstree(this.options.tree.jstree)
-
-    // this.tree.on('search.jstree', (event, data) => {
-    //   /* eslint-disable-next-line no-console */
-    //   console.log('INSIDE LOOP: ')
-    // })
-
-    // ('#jstree').jstree(true).search($("#q").val());
-    // window.jQuery('#' + this.treeContainer.id).jstree('search', true)
-    // window.jQuery('#' + this.treeContainer.id).jstree('search', 'root') // .search('root')
-
-    // window.jQuery(function () {
-    //   window.jQuery('#plugins2').jstree({
-    //     plugins: ['search']
-    //   })
-    //   var to = false
-    //   window.jQuery('#1').keyup(function () {
-    //     if (to) { clearTimeout(to) }
-    //     to = setTimeout(function () {
-    //       var v = window.jQuery(this).val()
-    //       window.jQuery('#plugins2').jstree(true).search(v)
-    //     }, 250)
-    //   })
-    // })
-
-    // this.tree.on('search.jstree', (nodes, str, res) => {
-    //   /* eslint-disable-next-line no-console */
-    //   console.log('search field: ', this.id)
-    //   if (str.nodes.length === 0) {
-    //     window.jQuery(this).jstree(true).hide_all()
-    //   }
-    // })
 
     /*
     take over checked tree elements into corresponding input field
