@@ -158,6 +158,8 @@ export class TreeEditor extends StringEditor {
     }
     this.popupContainer.appendChild(this.treeContainer)
     this.tree = window.jQuery('#' + this.treeContainer.id).jstree(this.options.tree.jstree)
+    /* eslint-disable-next-line no-console */
+    console.log('this.options.tree.jstree AJAX: ', this.data)
 
     /*
     take over checked tree elements into corresponding input field

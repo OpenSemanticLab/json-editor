@@ -24,6 +24,8 @@
 <textarea class="debug" cols="30" rows="10"></textarea>
 <button class='get-value'>Get Value</button>
 <div class='container'></div>
+<div id="jstreeChart"></div>
+<button onclick="reload_chart()">Show Tree</button>
 
 <script>
   var container = document.querySelector('.container');
@@ -94,6 +96,47 @@
       "field3": {
         "type": "string",
         "default": "empty3"
+      },
+      "field4": {
+        "type": "string",
+        "format": "tree",
+        // "default": "empty2",
+        "options": {
+          "tree": {
+            "value": "text",
+            "jstree": {
+              "core": {  
+                'data' : function (obj, cb) { 
+                  console.log("AJAX REQUEST OBJ: ", obj);
+                  let arr = []
+                  fetch('https://www.semantic-mediawiki.org/w/api.php?action=ask&query=[[Located%20in::Germany]]&format=json')
+                    .then(response => {
+                      console.log('response: ', response);
+                      return response.json();
+                    })
+                    .then(data => {
+                      console.log('data: ', data.query.results);
+                      for (const [key, value] of Object.entries(data.query.results)) {
+                        // console.log(`${key}: ${value}`);
+                        console.log('value: ', value.displaytitle);
+                        arr.push({
+                          // id : key, 
+                          text : value.displaytitle !== "" ? value.displaytitle : value.fulltext, 
+                          parentNode : value.printouts.length === 0 ? '#' : value.printouts
+                        })
+                      }
+                      console.log('arr: ', arr)
+                      cb.call(this, arr);
+                    })
+                    .catch(console.error);
+                  // 1. fetch
+                  // 2. json --> correct json format []
+                  // 3. callback
+                }
+              }
+            }
+          }
+        }
       }
     }
   };
