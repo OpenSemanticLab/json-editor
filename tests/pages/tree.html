@@ -122,6 +122,9 @@
                       .then(data => {
                         console.log('data: ', data.query.results);
                         let arr = []
+                        let nodesArr = []
+                        let parentsArr = []
+                        let rootNodesArr = []
 
                         for (const [key, value] of Object.entries(data.query.results)) {
                           console.log('=======BEGINN===========')
@@ -140,8 +143,35 @@
                             parent: parentArr.length === 0 ? '#' : parentNode,
                             text: node
                           })
+
+                          if (!nodesArr.includes(node)) {
+                            nodesArr.push(node)
+                          }
+
+                          if (parentArr.length !== 0 && !parentsArr.includes(parentNode)) {
+                            parentsArr.push(parentNode)
+                          }
+
+                          // if (parentArr.length !== 0 && !rootNodesArr.includes(parentNode)) {
+                          // // if (parentArr.length !== 0 && !nodesArr.filter(e => e === parentNode).length > 0) {
+                          //   rootNodesArr.push(parentNode)
+                          // } else {
+                          //   nodesArr.filter(e => e !== parentNode)
+                          // }
                         }
-                        arr.push({ id: 'Europe', parent: '#', text: 'Europe' });
+                        console.log('arr: ', arr)
+                        console.log("nodesArr: ", nodesArr)
+                        console.log("parentsArr: ", parentsArr)
+
+                        // set an orphan node to a root
+                        parentsArr.forEach(p => {
+                          if (!nodesArr.filter(n => n === p).length > 0)
+                          rootNodesArr.push(p)
+                        })
+                        
+                        console.log("rootNodesArr: ", rootNodesArr)
+
+                        rootNodesArr.forEach(e => arr.push({ id: e, parent: '#', text: e }))
                         console.log('arr: ', arr)
                         cb.call(this, arr);
                       })
