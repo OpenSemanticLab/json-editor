@@ -83,12 +83,15 @@ export class TreeEditor extends StringEditor {
     })
   }
 
-  setValue (value, initial, fromTemplate) { /*  3. after getNumCols() -> postBuild() */
+  setValue (value) {
     /* eslint-disable-next-line no-console */
-    console.log('in setValue fct')
-    const res = super.setValue(value, initial, fromTemplate)
+    console.log('in setValue fct:', value)
+    const res = super.setValue(value)
     if (this.tree && this.treeContainer && res && res.changed) {
-      this.tree.jstree(true).select_node(res.value)
+      var idArr = []
+      var jsonNodes = this.tree.jstree(true).get_json('#', { flat: true })
+      value.forEach(val => jsonNodes.filter(e => { return e.text === val }).map(e => { idArr.push(e.id) }))
+      this.tree.jstree(true).select_node(idArr)
     }
     return res
   }
