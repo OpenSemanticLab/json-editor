@@ -12,6 +12,10 @@ export class TreeEditor extends StringEditor {
     /* eslint-disable-next-line no-console */
     console.log('in postBuild fct')
 
+    /*
+    add "add", "clear" buttons to each filed
+    alternatively click on field or use backspace key
+    */
     const btnAdd = document.createElement('button')
     btnAdd.innerHTML = 'Add'
     this.container.appendChild(btnAdd)
@@ -20,7 +24,9 @@ export class TreeEditor extends StringEditor {
     btnClear.innerHTML = 'Clear'
     this.container.appendChild(btnClear)
 
-    /* create a popup container */
+    /*
+    create a popup container
+    */
     this.popupContainer = document.createElement('div')
     this.popupContainer.id = 'popup-' + this.container.dataset.schemapath.replaceAll('.', '-') /* jQuery doesn't like dots and hyphens within the id */
     /* eslint-disable-next-line no-console */
@@ -44,6 +50,9 @@ export class TreeEditor extends StringEditor {
     })
 
     this.input.id = 'input-' + this.container.dataset.schemapath.replaceAll('.', '-')
+    /*
+    tagify input fields (only of format 'tree') by converting selected tree nodes into tags
+    */
     this.tagify = window.jQuery('#' + this.input.id).tagify()
       .on('removeTag', (event, tagName) => { // tagName.data.value
         var treeId = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-')
@@ -51,9 +60,8 @@ export class TreeEditor extends StringEditor {
         window.jQuery('#' + treeId).jstree('deselect_node', '#' + labels[tagName.index])
         labels.splice(tagName.index, 1)
       })
-    /* TODO : 1.search plugin
-              2.API ajax dynamic tree
-              3.deselect removed nodes
+    /*
+    open a popup with a tree structure on click on the input field
     */
     window.document.addEventListener('click', (event) => {
       if (this.container.contains(event.target) && event.target.className === 'tagify__input') {
@@ -64,6 +72,9 @@ export class TreeEditor extends StringEditor {
       }
     }, false)
 
+    /*
+    diasble manual inputs in the tagified input field
+    */
     window.document.addEventListener('keydown', (event) => {
       if (this.container.contains(event.target) && event.target.className === 'tagify__input') {
         // window.jQuery(this).trigger('change')
@@ -83,19 +94,16 @@ export class TreeEditor extends StringEditor {
     })
   }
 
+  /*
+  updates the formular by taking over id of tree elements, setting the corresponding text values in the input fields as tags
+  and selecting the corresponding nodes in a tree
+  */
   setValue (value) {
     /* eslint-disable-next-line no-console */
     console.log('in setValue fct:', value)
     const res = super.setValue(value)
     if (this.tree && this.treeContainer && res && res.changed) {
-      // id values that have to be selected in the tree after update
-      var idArr = []
-      // get a list of all tree elements including node id, text
-      var jsonNodes = this.tree.jstree(true).get_json('#', { flat: true })
-      // find a tree element by text and add its id to idAr
-      value.forEach(val => jsonNodes.filter(e => { return e.text === val }).map(e => { idArr.push(e.id) }))
-      this.tree.jstree(true).select_node(idArr)
-      // this.tree.jstree(true).select_node('')
+      this.tree.jstree(true).select_node(value)
     }
     return res
   }
@@ -153,6 +161,10 @@ export class TreeEditor extends StringEditor {
     */
     this.treeContainer = document.createElement('div')
     this.treeContainer.id = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-') /* jstree / jQuery doesn't like dots and hyphens within the id */
+
+    /*
+    create a search bar to the popup if jsTree includes 'search' plugin
+    */
     if (this.options.tree.jstree.plugins && this.options.tree.jstree.plugins.includes('search')) {
       this.searchField = document.createElement('INPUT')
       this.searchField.setAttribute('type', 'search')
@@ -163,6 +175,7 @@ export class TreeEditor extends StringEditor {
       this.searchField.addEventListener('click', (event) => { this.tree.jstree('search', true) })
       this.popupContainer.appendChild(this.searchField)
     }
+
     this.popupContainer.appendChild(this.treeContainer)
     this.tree = window.jQuery('#' + this.treeContainer.id).jstree(this.options.tree.jstree)
     /* eslint-disable-next-line no-console */

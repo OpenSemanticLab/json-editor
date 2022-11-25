@@ -185,21 +185,19 @@ document.querySelector('.set-value').addEventListener('click', function () {
             console.log('for-block SOLL: ', data);
             // -------- TO BE DELETED AFTERWARDS ---------
 
-            // get a new value for the current field
+            // get a new id value for the current field
             var newVal = updatedJson[key];
             console.log('updatedJson for this tree newVal: ', newVal)
 
-            // create a dictionary where (key, value) = (id, text) of tree elements
-            var treeEl = {}
-            data.forEach(e => treeEl[e.id] = e.text)
-            console.log('DICTIONARY :', treeEl)
+            // get id of all tree elements
+            var idArr = []
+            data.forEach(e => {idArr.push(e.id)})
 
             if (newVal !== '' && newVal !== undefined) {
-                // Array.from(newVal).forEach(e => (treeEl.hasOwnProperty(e)) ? isSubArr = true : alert(`Could not find any element with id=${e} in the ${key}.`))
                 // check if the provided node id values exist in the tree, if not - display alert msg
-                Array.from(newVal).forEach(e => {if (!treeEl.hasOwnProperty(e)) {alert(`Could not find any element with id=${e} in the ${key}.`)}})
-                // get node text by id, keep only id values that exist in the tree (not undefined)
-                json[key] = newVal.map(e => {return treeEl[e]}).filter(e => {return e !== undefined});          
+                Array.from(newVal).forEach(e => {if (!idArr.includes(e)) {alert(`Could not find any element with id=${e} in the ${key}.`)}})
+                //  keep only id values that exist in the tree (not undefined)
+                json[key] = newVal.filter(e => {if (idArr.includes(e)) {return e}})     
             }
             editor.setValue(json);
         }
