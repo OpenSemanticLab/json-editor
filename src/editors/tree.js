@@ -88,10 +88,14 @@ export class TreeEditor extends StringEditor {
     console.log('in setValue fct:', value)
     const res = super.setValue(value)
     if (this.tree && this.treeContainer && res && res.changed) {
+      // id values that have to be selected in the tree after update
       var idArr = []
+      // get a list of all tree elements including node id, text
       var jsonNodes = this.tree.jstree(true).get_json('#', { flat: true })
+      // find a tree element by text and add its id to idAr
       value.forEach(val => jsonNodes.filter(e => { return e.text === val }).map(e => { idArr.push(e.id) }))
       this.tree.jstree(true).select_node(idArr)
+      // this.tree.jstree(true).select_node('')
     }
     return res
   }

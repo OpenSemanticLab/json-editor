@@ -1,5 +1,6 @@
 var container = document.querySelector('.container');
 var outputTextarea = document.querySelector('.debug');
+var fetchedData = ['placeholder1', 'placeholder2', 'placeholder3'];
 
 var schema = {
     "type": "object",
@@ -76,7 +77,7 @@ var schema = {
                     "value": "text",
                     "jstree": {
                         "core": {
-                            'data': function (obj, cb) {
+                            'data': function abc (obj, cb) {
                                 // console.log("AJAX REQUEST OBJ: ", obj);
                                 // let arr = []
                                 // let i = 0;
@@ -125,12 +126,20 @@ var schema = {
                                         // console.log("parentsArr: ", parentsArr)
                                         // console.log("rootNodesArr: ", rootNodesArr)
                                         console.log('arr: ', arr)
+                                        fetchedData.push(arr);
+                                        console.log('fetchedData: ', fetchedData)
 
                                         cb.call(this, arr);
-                                        // return arr;
+                                        // console.log('fetchedData: ', fetchedData)
+                                        // return fetchedData;
                                     })
                                     .catch(console.error);
-                            }
+                                // return data;
+                            },
+                            'dataArr': 
+                                // console.log('fetchedData: ', fetchedData)
+                                fetchedData
+                            
                         },
                         "plugins": ["search"],
                         "search": {
@@ -152,50 +161,50 @@ document.querySelector('.get-value').addEventListener('click', function () {
     outputTextarea.value = JSON.stringify(editor.getValue());
 });
 
+/*
+updates the formular with new schema values (provide node id instead of node title)
+*/
 document.querySelector('.set-value').addEventListener('click', function () {
     let json = editor.getValue()
-    // let json = JSON.stringify(editor.getValue())
-    // outputTextarea.value = JSON.stringify(json, null, 2)
     console.log('outputTextarea: ', JSON.parse(outputTextarea.value))
+    // get a JSON schema from an input/output area
     let updatedJson = JSON.parse(outputTextarea.value)
 
+    let counter = 0;
     for (const [key, value] of Object.entries(schema.properties)) {
         if (value && value.format && value.format === 'tree') {
+            // -------- TO BE DELETED AFTERWARDS ---------
             console.log('field name : ', key)
-            var data = value.options.tree.jstree.core.data
-            console.log('for-block SOLL: ', data);
-
-            // create a dict where (key, value) = (id, text) of tree elements
-            var dict = {}
-            data.forEach(e => dict[e.id] = e.text)
-            console.log('DICTIONARY :', dict)
-
-            console.log('updatedJson for this tree: ', updatedJson[key])
-
-            var isSubArr = updatedJson[key].every((i => v => i = Object.keys(dict).indexOf(v, i) + 1)(0));
-            if (isSubArr || updatedJson[key] === '') {
-                console.log('master contains sub id OR empty? : TRUE')
-                console.log('json BEFORE:', json)
-
-                const labelArr = updatedJson[key].map(e => {return dict[e]});
-
-                // json[key] = updatedJson[key]
-                json[key] = labelArr
-
-                console.log('dict[updatedJson[key]:', dict[key])
-                console.log('json AFTER:', json[key])
-                editor.setValue(json);
-                // editor.setValue({ field1: ["Child 1"], field2: "",   field3: "Germany" });
+            console.log('for-block SOLL TREE: ', fetchedData[counter]);
+            // var data = value.options.tree.jstree.core.data
+            if (counter == 3) {
+                var data = fetchedData[counter];
             } else {
-                console.log('contains updated id OR empty? : FALSE')
+                var data = value.options.tree.jstree.core.data
             }
-        }
-        // console.log('for-block: ', value)
-        // console.log('for-block: ', value.format)
-        console.log('-----------------------------')
-    }
+            console.log('for-block SOLL: ', data);
+            // -------- TO BE DELETED AFTERWARDS ---------
 
-    // editor.setValue(JSON.parse(outputTextarea.value))
-    // editor.setValue({ field1: ["Child 1"], field2: "", field3: "Germany", field4: ["Demo:Germany"] });
+            // get a new value for the current field
+            var newVal = updatedJson[key];
+            console.log('updatedJson for this tree newVal: ', newVal)
+
+            // create a dictionary where (key, value) = (id, text) of tree elements
+            var treeEl = {}
+            data.forEach(e => treeEl[e.id] = e.text)
+            console.log('DICTIONARY :', treeEl)
+
+            if (newVal !== '' && newVal !== undefined) {
+                // Array.from(newVal).forEach(e => (treeEl.hasOwnProperty(e)) ? isSubArr = true : alert(`Could not find any element with id=${e} in the ${key}.`))
+                // check if the provided node id values exist in the tree, if not - display alert msg
+                Array.from(newVal).forEach(e => {if (!treeEl.hasOwnProperty(e)) {alert(`Could not find any element with id=${e} in the ${key}.`)}})
+                // get node text by id, keep only id values that exist in the tree (not undefined)
+                json[key] = newVal.map(e => {return treeEl[e]}).filter(e => {return e !== undefined});          
+            }
+            editor.setValue(json);
+        }
+        console.log('-----------------------------')
+        counter ++;
+    }
 });
 
