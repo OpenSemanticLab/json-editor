@@ -88,48 +88,53 @@ var schema = {
                                     })
                                     .then(data => {
                                         // console.log('data: ', data.query.results);
-                                        let arr = []
-                                        let nodesArr = []
-                                        let parentsArr = []
+                                        let arrToCallback = []  // main array of nodes used in callback
+                                        let allNodesArr = []  // array of all nodes
+                                        let allParentsArr = []  // array of all parent nodes (potential root nodes)
 
                                         for (const [key, value] of Object.entries(data.query.results)) {
-                                            // console.log('=======BEGINN===========')
-
-                                            let node = value["fulltext"]
-                                            let parentArr = value.printouts;
-                                            let parentNode = value.printouts["Located in"][0]["fulltext"]
+                                            /*
+                                            change here according to the JSON schema:
+                                            "dispalytitle" is the label/text of a node to be displayed in a tree
+                                            "fulltext" is the unqiue ID of a node
+                                            */
+                                            let nodeText = value["displaytitle"] !== "" ? value["displaytitle"] : value["fulltext"]
+                                            let nodeId = value["fulltext"]
+                                            let parentArr = value.printouts  // array of parents of this single node
+                                            let parentNode = parentArr.length === 0 ? '#' : value.printouts["Located in"][0]["fulltext"]  // check if a node has any parent otherwise set to a root node
                                             // parentNode = parentNode["displaytitle"] !== "" ? parentNode["displaytitle"] : parentNode["fulltext"]
 
-                                            // console.log('ARR: ', arr)
-                                            // console.log('NODE: ', node)
-                                            // console.log('PARENT: ', parentNode)
-
-                                            arr.push({
-                                                id: node,
-                                                parent: parentArr.length === 0 ? '#' : parentNode,
-                                                text: node
+                                            arrToCallback.push({
+                                                id: nodeId,
+                                                parent: parentNode,
+                                                text: nodeText
                                             })
 
-                                            if (!nodesArr.includes(node)) {
-                                                nodesArr.push(node)
+                                            /*
+                                            add a node to the array containing all nodes
+                                            */
+                                            if (!allNodesArr.includes(nodeId)) {
+                                                allNodesArr.push(nodeId)
                                             }
-                                            if (parentArr.length !== 0 && !parentsArr.includes(parentNode)) {
-                                                parentsArr.push(parentNode)
+
+                                            /*
+                                            add a parent node to array containing nodes that have children (potential root nodes)
+                                            */
+                                            if (parentArr.length !== 0 && !allParentsArr.includes(parentNode)) {
+                                                allParentsArr.push(parentNode)
                                             }
                                         }
-                                        // set an orphan node to a root
-                                        let rootNodesArr = parentsArr.filter(e => !nodesArr.includes(e));
-                                        rootNodesArr.forEach(e => arr.push({ id: e, parent: '#', text: e }))
+                                        /*
+                                        check if a parent node has any parents itself, if not - set the orphan node to a root node
+                                        */
+                                        let rootNodesArr = allParentsArr.filter(e => !allNodesArr.includes(e));  // get nodes with no parents from array containing nodes that have children
+                                        rootNodesArr.forEach(e => arrToCallback.push({ id: e, parent: '#', text: e }))  // add root node to the array used in callback
 
-                                        // console.log('arr: ', arr)
-                                        // console.log("nodesArr: ", nodesArr)
-                                        // console.log("parentsArr: ", parentsArr)
-                                        // console.log("rootNodesArr: ", rootNodesArr)
-                                        console.log('arr: ', arr)
-                                        fetchedData.push(arr);
+                                        console.log('arr: ', arrToCallback)
+                                        fetchedData.push(arrToCallback);
                                         console.log('fetchedData: ', fetchedData)
 
-                                        cb.call(this, arr);
+                                        cb.call(this, arrToCallback);
                                         // console.log('fetchedData: ', fetchedData)
                                         // return fetchedData;
                                     })
@@ -196,7 +201,7 @@ document.querySelector('.set-value').addEventListener('click', function () {
             if (newVal !== '' && newVal !== undefined) {
                 // check if the provided node id values exist in the tree, if not - display alert msg
                 Array.from(newVal).forEach(e => {if (!idArr.includes(e)) {alert(`Could not find any element with id=${e} in the ${key}.`)}})
-                //  keep only id values that exist in the tree (not undefined)
+                //  keep only id values that exist in the tree
                 json[key] = newVal.filter(e => {if (idArr.includes(e)) {return e}})     
             }
             editor.setValue(json);
