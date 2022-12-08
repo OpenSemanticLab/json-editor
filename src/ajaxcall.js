@@ -92,7 +92,7 @@ var schema = {
                                         let allNodesArr = []  // array of all nodes
                                         let allParentsArr = []  // array of all parent nodes (potential root nodes)
 
-                                        for (const [key, value] of Object.entries(data.query.results)) {
+                                        for (const [, value] of Object.entries(data.query.results)) {
                                             /*
                                             change here according to the JSON schema:
                                             "dispalytitle" is the label/text of a node to be displayed in a tree
@@ -132,7 +132,7 @@ var schema = {
 
                                         console.log('arr: ', arrToCallback)
                                         fetchedData.push(arrToCallback);
-                                        console.log('fetchedData: ', fetchedData)
+                                        // console.log('fetchedData: ', fetchedData)
 
                                         cb.call(this, arrToCallback);
                                         // console.log('fetchedData: ', fetchedData)
@@ -140,10 +140,7 @@ var schema = {
                                     })
                                     .catch(console.error);
                                 // return data;
-                            },
-                            'dataArr': 
-                                // console.log('fetchedData: ', fetchedData)
-                                fetchedData
+                            }
                             
                         },
                         "plugins": ["search"],
@@ -176,38 +173,40 @@ document.querySelector('.set-value').addEventListener('click', function () {
     let updatedJson = JSON.parse(outputTextarea.value)
 
     let counter = 0;
+
+    /*
+    check each field in formular of format tree for 'undefined'
+    if a field is not specidied in a new json schema, set its value to ''
+    */
     for (const [key, value] of Object.entries(schema.properties)) {
-        if (value && value.format && value.format === 'tree') {
-            // -------- TO BE DELETED AFTERWARDS ---------
-            console.log('field name : ', key)
-            console.log('for-block SOLL TREE: ', fetchedData[counter]);
-            // var data = value.options.tree.jstree.core.data
-            if (counter == 3) {
-                var data = fetchedData[counter];
-            } else {
-                var data = value.options.tree.jstree.core.data
-            }
-            console.log('for-block SOLL: ', data);
-            // -------- TO BE DELETED AFTERWARDS ---------
+        if (value && value.format && value.format === 'tree' && updatedJson[key] === undefined) {
 
-            // get a new id value for the current field
-            var newVal = updatedJson[key];
-            console.log('updatedJson for this tree newVal: ', newVal)
 
-            // get id of all tree elements
-            var idArr = []
-            data.forEach(e => {idArr.push(e.id)})
+            // // get a new id value for the current field
+            // var newVal = updatedJson[key];
+            // console.log('updatedJson for this tree newVal: ', newVal)
+            // // (updatedJson[key]) => (updatedJson[key] === undefined) ? true : false
+            // if (updatedJson[key] === undefined) {
+            //     updatedJson[key] = ''
+            // }
+            updatedJson[key] = ''
+            console.log(`updatedJson for this tree newVal ${key}: `, updatedJson[key])
 
-            if (newVal !== '' && newVal !== undefined) {
-                // check if the provided node id values exist in the tree, if not - display alert msg
-                Array.from(newVal).forEach(e => {if (!idArr.includes(e)) {alert(`Could not find any element with id=${e} in the ${key}.`)}})
-                //  keep only id values that exist in the tree
-                json[key] = newVal.filter(e => {if (idArr.includes(e)) {return e}})     
-            }
-            editor.setValue(json);
+            // // get id of all tree elements
+            // var idArr = []
+            // data.forEach(e => {idArr.push(e.id)})
+
+            // if (newVal !== '' && newVal !== undefined) {
+            //     // check if the provided node id values exist in the tree, if not - display alert msg
+            //     Array.from(newVal).forEach(e => {if (!idArr.includes(e)) {alert(`Could not find any element with id=${e} in the ${key}.`)}})
+            //     //  keep only id values that exist in the tree
+            //     json[key] = newVal.filter(e => {if (idArr.includes(e)) {return e}})     
+            // }
+            // editor.setValue(json);
         }
         console.log('-----------------------------')
         counter ++;
     }
+    editor.setValue(updatedJson);
 });
 

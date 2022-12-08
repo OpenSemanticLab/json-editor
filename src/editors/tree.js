@@ -101,7 +101,36 @@ export class TreeEditor extends StringEditor {
   setValue (value) {
     /* eslint-disable-next-line no-console */
     console.log('in setValue fct:', value)
-    const res = super.setValue(value)
+    var res = {}
+
+    if (this.tree && this.treeContainer) {
+      // get nodes' ids and labels (text)
+      var nodeArr = []
+      var labelArr = []
+      var jsonNodes = this.tree.jstree(true).get_json('#', { flat: true })
+      window.jQuery.each(jsonNodes, function (i, val) {
+        nodeArr.push({
+          id: window.jQuery(val).attr('id'),
+          text: window.jQuery(val).attr('text')
+        })
+      })
+
+      if (value !== '' && value !== undefined) {
+        // map node id to its corresponding label (text)
+        value.forEach(val => nodeArr.filter(e => { return e.id === val }).map(e => { labelArr.push(e.text) }))
+        res = super.setValue(labelArr)
+        /* eslint-disable-next-line no-console */
+        console.log('labels to display : ', labelArr)
+      } else if (value === '') {
+        res = super.setValue(value)
+      }
+
+      // /* eslint-disable-next-line no-console */
+      // console.log('in CREATE TREE ! : ', nodeArr)
+      // /* eslint-disable-next-line no-console */
+      // console.log('in CREATE TREE ! labelArr : ', labelArr)
+    }
+
     if (this.tree && this.treeContainer && res && res.changed) {
       this.tree.jstree(true).select_node(value)
     }
@@ -129,7 +158,7 @@ export class TreeEditor extends StringEditor {
 
   enable () {
     /* eslint-disable-next-line no-console */
-    console.log('in enable fct')
+    // console.log('in enable fct')
     super.enable()
   }
 
@@ -178,8 +207,6 @@ export class TreeEditor extends StringEditor {
 
     this.popupContainer.appendChild(this.treeContainer)
     this.tree = window.jQuery('#' + this.treeContainer.id).jstree(this.options.tree.jstree)
-    /* eslint-disable-next-line no-console */
-    console.log('this.options.tree.jstree AJAX: ', this.data)
 
     /*
     take over checked tree elements into corresponding input field
@@ -205,6 +232,13 @@ export class TreeEditor extends StringEditor {
       this.input.label = checkedIds
       this.input.value = checkedValues.join(', ')
     })
+
+    // this.tree.on('model.jstree', (nodes, parents) => {
+    //   /* eslint-disable-next-line no-console */
+    //   console.log('nodes: ', nodes)
+    //   /* eslint-disable-next-line no-console */
+    //   console.log('parents: ', parents)
+    // })
   }
 
   setVisible (visible) {
