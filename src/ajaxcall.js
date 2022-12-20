@@ -1,6 +1,5 @@
 var container = document.querySelector('.container');
 var outputTextarea = document.querySelector('.debug');
-var fetchedData = ['placeholder1', 'placeholder2', 'placeholder3'];
 
 var schema = {
     "type": "object",
@@ -78,16 +77,11 @@ var schema = {
                     "jstree": {
                         "core": {
                             'data': function abc (obj, cb) {
-                                // console.log("AJAX REQUEST OBJ: ", obj);
-                                // let arr = []
-                                // let i = 0;
                                 fetch('https://www.semantic-mediawiki.org/w/api.php?action=ask&query=[[Located%20in::Germany]]OR[[Demo:Germany]]|?Located%20in&format=json')
                                     .then(response => {
-                                        // console.log('response: ', response);
                                         return response.json();
                                     })
                                     .then(data => {
-                                        // console.log('data: ', data.query.results);
                                         let arrToCallback = []  // main array of nodes used in callback
                                         let allNodesArr = []  // array of all nodes
                                         let allParentsArr = []  // array of all parent nodes (potential root nodes)
@@ -130,16 +124,9 @@ var schema = {
                                         let rootNodesArr = allParentsArr.filter(e => !allNodesArr.includes(e));  // get nodes with no parents from array containing nodes that have children
                                         rootNodesArr.forEach(e => arrToCallback.push({ id: e, parent: '#', text: e }))  // add root node to the array used in callback
 
-                                        console.log('arr: ', arrToCallback)
-                                        fetchedData.push(arrToCallback);
-                                        // console.log('fetchedData: ', fetchedData)
-
                                         cb.call(this, arrToCallback);
-                                        // console.log('fetchedData: ', fetchedData)
-                                        // return fetchedData;
                                     })
                                     .catch(console.error);
-                                // return data;
                             }
                             
                         },
@@ -167,12 +154,8 @@ document.querySelector('.get-value').addEventListener('click', function () {
 updates the formular with new schema values (provide node id instead of node title)
 */
 document.querySelector('.set-value').addEventListener('click', function () {
-    let json = editor.getValue()
-    console.log('outputTextarea: ', JSON.parse(outputTextarea.value))
     // get a JSON schema from an input/output area
     let updatedJson = JSON.parse(outputTextarea.value)
-
-    let counter = 0;
 
     /*
     check each field in formular of format tree for 'undefined'
@@ -180,32 +163,8 @@ document.querySelector('.set-value').addEventListener('click', function () {
     */
     for (const [key, value] of Object.entries(schema.properties)) {
         if (value && value.format && value.format === 'tree' && updatedJson[key] === undefined) {
-
-
-            // // get a new id value for the current field
-            // var newVal = updatedJson[key];
-            // console.log('updatedJson for this tree newVal: ', newVal)
-            // // (updatedJson[key]) => (updatedJson[key] === undefined) ? true : false
-            // if (updatedJson[key] === undefined) {
-            //     updatedJson[key] = ''
-            // }
             updatedJson[key] = ''
-            console.log(`updatedJson for this tree newVal ${key}: `, updatedJson[key])
-
-            // // get id of all tree elements
-            // var idArr = []
-            // data.forEach(e => {idArr.push(e.id)})
-
-            // if (newVal !== '' && newVal !== undefined) {
-            //     // check if the provided node id values exist in the tree, if not - display alert msg
-            //     Array.from(newVal).forEach(e => {if (!idArr.includes(e)) {alert(`Could not find any element with id=${e} in the ${key}.`)}})
-            //     //  keep only id values that exist in the tree
-            //     json[key] = newVal.filter(e => {if (idArr.includes(e)) {return e}})     
-            // }
-            // editor.setValue(json);
         }
-        console.log('-----------------------------')
-        counter ++;
     }
     editor.setValue(updatedJson);
 });

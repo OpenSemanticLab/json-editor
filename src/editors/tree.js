@@ -8,10 +8,7 @@ import { StringEditor } from './string.js'
 import { extend } from '../utilities.js'
 
 export class TreeEditor extends StringEditor {
-  postBuild () { /* 2. after getNumCols() */
-    /* eslint-disable-next-line no-console */
-    console.log('in postBuild fct')
-
+  postBuild () {
     /*
     add "add", "clear" buttons to each filed
     alternatively click on field or use backspace key
@@ -29,8 +26,6 @@ export class TreeEditor extends StringEditor {
     */
     this.popupContainer = document.createElement('div')
     this.popupContainer.id = 'popup-' + this.container.dataset.schemapath.replaceAll('.', '-') /* jQuery doesn't like dots and hyphens within the id */
-    /* eslint-disable-next-line no-console */
-    console.log('this.popupContainer.id: ', this.popupContainer.id)
     this.container.appendChild(this.popupContainer)
     /*
     create a popup dialog and show on input field click
@@ -54,7 +49,7 @@ export class TreeEditor extends StringEditor {
     tagify input fields (only of format 'tree') by converting selected tree nodes into tags
     */
     this.tagify = window.jQuery('#' + this.input.id).tagify()
-      .on('removeTag', (event, tagName) => { // tagName.data.value
+      .on('removeTag', (event, tagName) => {
         var treeId = 'tree-' + this.container.dataset.schemapath.replaceAll('.', '-')
         var labels = event.target.label
         window.jQuery('#' + treeId).jstree('deselect_node', '#' + labels[tagName.index])
@@ -65,9 +60,6 @@ export class TreeEditor extends StringEditor {
     */
     window.document.addEventListener('click', (event) => {
       if (this.container.contains(event.target) && event.target.className === 'tagify__input') {
-        // if (!event.target.classList.contains('my-selector-class')) return;
-        /* eslint-disable-next-line no-console */
-        console.log('event target NAME: ', event.target.className)
         window.jQuery('#' + this.popupContainer.id).dialog('open')
       }
     }, false)
@@ -77,7 +69,6 @@ export class TreeEditor extends StringEditor {
     */
     window.document.addEventListener('keydown', (event) => {
       if (this.container.contains(event.target) && event.target.className === 'tagify__input') {
-        // window.jQuery(this).trigger('change')
         event.preventDefault()
         event.stopPropagation()
       }
@@ -99,8 +90,6 @@ export class TreeEditor extends StringEditor {
   and selecting the corresponding nodes in a tree
   */
   setValue (value) {
-    /* eslint-disable-next-line no-console */
-    console.log('in setValue fct:', value)
     var res = {}
 
     if (this.tree && this.treeContainer) {
@@ -119,16 +108,9 @@ export class TreeEditor extends StringEditor {
         // map node id to its corresponding label (text)
         value.forEach(val => nodeArr.filter(e => { return e.id === val }).map(e => { labelArr.push(e.text) }))
         res = super.setValue(labelArr)
-        /* eslint-disable-next-line no-console */
-        console.log('labels to display : ', labelArr)
       } else if (value === '') {
         res = super.setValue(value)
       }
-
-      // /* eslint-disable-next-line no-console */
-      // console.log('in CREATE TREE ! : ', nodeArr)
-      // /* eslint-disable-next-line no-console */
-      // console.log('in CREATE TREE ! labelArr : ', labelArr)
     }
 
     if (this.tree && this.treeContainer && res && res.changed) {
@@ -137,42 +119,30 @@ export class TreeEditor extends StringEditor {
     return res
   }
 
-  getNumColumns () { /* 1. */
-    /* eslint-disable-next-line no-console */
-    console.log('in getNumColumns fct')
+  getNumColumns () {
     return 2
   }
 
-  afterInputReady () { /*  4. after getNumCols() -> postBuild() -> setValue() */
-    /* eslint-disable-next-line no-console */
-    console.log('in afterInputReady fct')
+  afterInputReady () {
     super.afterInputReady()
     this.createTree(true)
   }
 
   disable () {
-    /* eslint-disable-next-line no-console */
-    console.log('in disable fct')
     super.disable()
   }
 
   enable () {
-    /* eslint-disable-next-line no-console */
-    // console.log('in enable fct')
     super.enable()
   }
 
   destroy () {
-    /* eslint-disable-next-line no-console */
-    console.log('in destroy fct')
     super.destroy()
     window.jQuery(this.treeContainer.id).jstree.destroy()
   }
 
   /* helper functions */
   createTree (create) {
-    /* eslint-disable-next-line no-console */
-    console.log('in createTree fct')
     // const editor = this
 
     /* fetch config from schema */
@@ -199,7 +169,6 @@ export class TreeEditor extends StringEditor {
       this.searchField.setAttribute('type', 'search')
       this.searchField.setAttribute('placeholder', 'Search..')
       this.searchField.id = 'search-' + this.container.dataset.schemapath.replaceAll('.', '-')
-      // this.searchField.addEventListener('keydown', (event) => { if (event.key === 'Enter') this.tree.jstree('search', this.searchField.value) })
       this.searchField.addEventListener('keydown', (event) => { this.tree.jstree('search', this.searchField.value) })
       this.searchField.addEventListener('click', (event) => { this.tree.jstree('search', true) })
       this.popupContainer.appendChild(this.searchField)
@@ -212,38 +181,21 @@ export class TreeEditor extends StringEditor {
     take over checked tree elements into corresponding input field
     json output saves only id of each element
     */
-    // this.input.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;')
     this.tree.on('changed.jstree', (event, data) => {
       var checkedIds = []
       var checkedValues = []
       var selectedNodes = window.jQuery('#' + this.treeContainer.id).jstree('get_selected', true)
-      /* eslint-disable-next-line no-console */
-      console.log('selectedNodes: ', selectedNodes)
       window.jQuery.each(selectedNodes, function () {
         checkedIds.push(this.id)
         checkedValues.push(this.text)
       })
-      /* eslint-disable-next-line no-console */
-      console.log('checkedValues: ', checkedValues)
 
-      // if (checkedIds.length === 0) {
-      //   this.input.label = this.input.value = ''
-      // } else {
       this.input.label = checkedIds
       this.input.value = checkedValues.join(', ')
     })
-
-    // this.tree.on('model.jstree', (nodes, parents) => {
-    //   /* eslint-disable-next-line no-console */
-    //   console.log('nodes: ', nodes)
-    //   /* eslint-disable-next-line no-console */
-    //   console.log('parents: ', parents)
-    // })
   }
 
   setVisible (visible) {
-    /* eslint-disable-next-line no-console */
-    console.log('in setVisible fct: ', visible)
     if (visible) this.treeContainer.style.display = 'block'
     else this.treeContainer.style.display = 'none'
   }
