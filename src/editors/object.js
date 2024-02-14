@@ -42,7 +42,7 @@ export class ObjectEditor extends AbstractEditor {
       super.enable()
       if (this.editors) {
         Object.values(this.editors).forEach(e => {
-          if (e.isActive()) {
+          if (e.isActive() || e.isUiOnly) {
             e.enable()
           }
           e.optInCheckbox.disabled = false
@@ -60,7 +60,7 @@ export class ObjectEditor extends AbstractEditor {
     super.disable()
     if (this.editors) {
       Object.values(this.editors).forEach(e => {
-        if (e.isActive()) {
+        if (e.isActive() || e.isUiOnly) {
           e.disable(alwaysDisabled)
         }
         e.optInCheckbox.disabled = true
@@ -537,6 +537,8 @@ export class ObjectEditor extends AbstractEditor {
         editor.postBuild()
         editor.setOptInCheckbox(editor.header)
 
+        editor.setValue(editor.getDefault(), true)
+
         if (this.editors[key].options.hidden) {
           holder.style.display = 'none'
         }
@@ -552,7 +554,7 @@ export class ObjectEditor extends AbstractEditor {
     } else {
       this.header = ''
       if (!this.options.compact) {
-        this.header = document.createElement('label')
+        this.header = document.createElement('span')
         this.header.textContent = this.getTitle()
       }
       this.title = this.theme.getHeader(this.header, this.getPathDepth())
@@ -566,7 +568,11 @@ export class ObjectEditor extends AbstractEditor {
 
       /* Edit JSON modal */
       this.editjson_holder = this.theme.getModal()
+      this.editjson_textarea_label = this.theme.getHiddenLabel(this.translate('button_edit_json'))
+      this.editjson_textarea_label.setAttribute('for', this.path + '-' + 'edit-json-textarea')
       this.editjson_textarea = this.theme.getTextareaInput()
+      this.editjson_textarea.setAttribute('id', this.path + '-' + 'edit-json-textarea')
+      this.editjson_textarea.setAttribute('aria-labelledby', this.path + '-' + 'edit-json-textarea')
       this.editjson_textarea.classList.add('je-edit-json--textarea')
       this.editjson_save = this.getButton('button_save', 'save', 'button_save')
       this.editjson_save.classList.add('json-editor-btntype-save')
@@ -589,6 +595,7 @@ export class ObjectEditor extends AbstractEditor {
         e.stopPropagation()
         this.hideEditJSON()
       })
+      this.editjson_holder.appendChild(this.editjson_textarea_label)
       this.editjson_holder.appendChild(this.editjson_textarea)
       this.editjson_holder.appendChild(this.editjson_save)
       this.editjson_holder.appendChild(this.editjson_copy)
@@ -603,7 +610,14 @@ export class ObjectEditor extends AbstractEditor {
 
       this.addproperty_input = this.theme.getFormInputField('text')
       this.addproperty_input.setAttribute('placeholder', 'Property name...')
+
+      this.addproperty_input_label = this.theme.getHiddenLabel(this.translate('button_properties'))
+      this.addproperty_input_label.setAttribute('for', this.path + '-' + 'property-selector')
+
       this.addproperty_input.classList.add('property-selector-input')
+      this.addproperty_input.setAttribute('id', this.path + '-' + 'property-selector')
+      this.addproperty_input.setAttribute('aria-labelledby', this.path + '-' + 'property-selector')
+
       this.addproperty_add.addEventListener('click', (e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -621,8 +635,18 @@ export class ObjectEditor extends AbstractEditor {
         }
       })
       this.addproperty_input.addEventListener('input', (e) => {
-        e.target.previousSibling.childNodes.forEach((value) => {
-          if (value.innerText.includes(e.target.value)) {
+        e.target.previousSibling.previousSibling.childNodes.forEach((value) => {
+          let searchTerm = value.innerText
+          let propertyTitle = e.target.value
+
+          const caseSensitivePropertySearch = this.options.case_sensitive_property_search || this.jsoneditor.options.case_sensitive_property_search
+
+          if (!caseSensitivePropertySearch) {
+            searchTerm = searchTerm.toLowerCase()
+            propertyTitle = propertyTitle.toLowerCase()
+          }
+
+          if (searchTerm.includes(propertyTitle)) {
             value.style.display = ''
           } else {
             value.style.display = 'none'
@@ -630,6 +654,7 @@ export class ObjectEditor extends AbstractEditor {
         })
       })
       this.addproperty_holder.appendChild(this.addproperty_list)
+      this.addproperty_holder.appendChild(this.addproperty_input_label)
       this.addproperty_holder.appendChild(this.addproperty_input)
       this.addproperty_holder.appendChild(this.addproperty_add)
       const spacer = document.createElement('div')
@@ -637,7 +662,8 @@ export class ObjectEditor extends AbstractEditor {
       this.addproperty_holder.appendChild(spacer)
 
       /* Close properties modal if clicked outside modal */
-      document.addEventListener('click', this.onOutsideModalClick.bind(this))
+      this.onOutsideModalClickListener = this.onOutsideModalClick.bind(this)
+      document.addEventListener('click', this.onOutsideModalClickListener, true)
 
       /* Description */
       if (this.schema.description) {
@@ -789,6 +815,10 @@ export class ObjectEditor extends AbstractEditor {
       /* Do it again now that we know the approximate heights of elements */
       this.layoutEditors()
     }
+
+    if (this.schema.readOnly || this.schema.readonly) {
+      this.disable()
+    }
   }
 
   deactivateNonRequiredProperties () {
@@ -837,15 +867,8 @@ export class ObjectEditor extends AbstractEditor {
 
   copyJSON () {
     if (!this.editjson_holder) return
-    const ta = document.createElement('textarea')
-    ta.value = this.editjson_textarea.value
-    ta.setAttribute('readonly', '')
-    ta.style.position = 'absolute'
-    ta.style.left = '-9999px'
-    document.body.appendChild(ta)
-    ta.select()
-    document.execCommand('copy')
-    document.body.removeChild(ta)
+    navigator.clipboard.writeText(this.editjson_textarea.value)
+      .catch((e) => window.alert(e))
   }
 
   saveJSON () {
@@ -890,13 +913,12 @@ export class ObjectEditor extends AbstractEditor {
     let labelText
 
     const checkbox = this.theme.getCheckbox()
-    checkbox.style.width = 'auto'
 
     if (this.schema.properties[key] && this.schema.properties[key].title) { labelText = this.schema.properties[key].title } else { labelText = key }
 
     const label = this.theme.getCheckboxLabel(labelText)
 
-    const control = this.theme.getFormControl(label, checkbox)
+    const control = this.theme.getFormControl(label, checkbox, null, null, this.path + '-' + key)
     control.style.paddingBottom = control.style.marginBottom = control.style.paddingTop = control.style.marginTop = 0
     control.style.height = 'auto'
     /* control.style.overflowY = 'hidden'; */
@@ -1056,10 +1078,31 @@ export class ObjectEditor extends AbstractEditor {
   }
 
   canHaveAdditionalProperties () {
+    // schemas have priority over options
+    // local options have priority over global options
+    // lastly global options are evaluated
+
+    // If the schema additionalProperties keyword is a boolean let the keyword decide
     if (typeof this.schema.additionalProperties === 'boolean') {
       return this.schema.additionalProperties
     }
-    return !this.jsoneditor.options.no_additional_properties
+
+    // If the schema additionalProperties keyword is a schema then additional properties are allowed and limited by such schema
+    if (typeof this.schema.additionalProperties === 'object' && this.schema.additionalProperties !== null) {
+      return true
+    }
+
+    // If the schema options no_additional_properties is a boolean let the option decide
+    if (typeof this.options.no_additional_properties === 'boolean') {
+      return !this.options.no_additional_properties
+    }
+
+    // If the global options no_additional_properties is a boolean let the option decide
+    if (typeof this.jsoneditor.options.no_additional_properties === 'boolean') {
+      return !this.jsoneditor.options.no_additional_properties
+    }
+
+    return true
   }
 
   destroy () {
@@ -1072,7 +1115,7 @@ export class ObjectEditor extends AbstractEditor {
     this.cached_editors = null
     if (this.editor_holder && this.editor_holder.parentNode) this.editor_holder.parentNode.removeChild(this.editor_holder)
     this.editor_holder = null
-    document.removeEventListener('click', this.onOutsideModalClick)
+    document.removeEventListener('click', this.onOutsideModalClickListener, true)
 
     super.destroy()
   }
@@ -1107,11 +1150,47 @@ export class ObjectEditor extends AbstractEditor {
 
     Object.keys(this.editors).forEach(i => {
       if (this.editors[i].isActive()) {
+        this.editors[i].refreshValue()
         this.value[i] = this.editors[i].getValue()
       }
     })
 
-    if (this.adding_property) this.refreshAddProperties()
+    Object.keys(this.editors).forEach(i => {
+      if (this.editors[i].isActive()) {
+        this.activateDependentRequired(this.editors[i].key)
+      }
+    })
+
+    if (this.adding_property) {
+      this.refreshAddProperties()
+    }
+  }
+
+  activateDependentRequired (key) {
+    const dependentRequired = this.getDependentRequired(key)
+    dependentRequired.forEach((requiredProperty) => {
+      let dependentRequiredEditor
+
+      Object.entries(this.cached_editors).forEach(([i, cachedEditor]) => {
+        if (cachedEditor.key === requiredProperty) {
+          dependentRequiredEditor = cachedEditor
+        }
+      })
+
+      if (dependentRequiredEditor && !dependentRequiredEditor.isActive()) {
+        dependentRequiredEditor.activate()
+      }
+    })
+  }
+
+  getDependentRequired (property) {
+    if (this.schema.dependentRequired) {
+      if (hasOwnProperty(this.schema.dependentRequired, property)) {
+        return this.schema.dependentRequired[property]
+      }
+    }
+
+    return []
   }
 
   refreshAddProperties () {
@@ -1188,6 +1267,7 @@ export class ObjectEditor extends AbstractEditor {
     if (!editor) {
       return
     }
+
     if (typeof editor.schema.required === 'boolean') return editor.schema.required
     else if (Array.isArray(this.schema.required)) return this.schema.required.includes(editor.key)
     else if (this.jsoneditor.options.required_by_default) return true

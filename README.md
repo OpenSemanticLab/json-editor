@@ -241,6 +241,11 @@ Here are all the available options:
     <td><code>true</code></td>
   </tr>
   <tr>
+      <td>keep_only_existing_values</td>
+      <td>If <code>true</code>, copy only existing properties over when switching.</td>
+      <td><code>false</code></td>
+    </tr>
+  <tr>
     <td>schema</td>
     <td>A valid JSON Schema to use for the editor.  Version 3 and Version 4 of the draft specification are supported.</td>
     <td><code>{}</code></td>
@@ -308,6 +313,16 @@ Here are all the available options:
   <tr>
     <td>use_name_attributes</td>
     <td>If <code>true</code>, control inputs <code>name</code> attributes will be set.</td>
+    <td><code>true</code></td>
+  </tr>
+  <tr>
+    <td>button_state_mode</td>
+    <td>If <code>1</code>, inactive buttons are hidden. If <code>2</code>, inactive buttons are disabled.</td>
+    <td><code>1</code></td>
+  </tr>
+  <tr>
+    <td>case_sensitive_property_search</td>
+    <td>This property controls whether property searches in an object editor are case-sensitive</td>
     <td><code>true</code></td>
   </tr>
   </tbody>
@@ -462,7 +477,9 @@ The currently supported themes are:
 
 *  barebones
 *  html (the default)
+*  bootstrap3
 *  bootstrap4
+*  bootstrap5 
 *  spectre
 *  tailwind
 
@@ -470,7 +487,6 @@ Note: The following themes have NOT been updated to 2.x format and will be remov
 Old 1.x themes displays the message **"This is an old JSON-Editor 1.x Theme and might not display elements correctly when used with the 2.x version"** at the bottom of the form output.
 
 *  bootstrap2
-*  bootstrap3
 *  foundation3
 *  foundation4
 *  foundation5
@@ -508,6 +524,7 @@ The supported icon libs are:
 *  fontawesome5
 *  openiconic
 *  spectre
+*  bootstrap
 
 By default, no icons are used. Just like the CSS theme, you can set the icon lib globally or when initializing:
 
@@ -533,7 +550,7 @@ Some of The [hyper-schema][hyper] specification is supported as well.
 
 [core]: http://json-schema.org/latest/json-schema-core.html
 [validation]: http://json-schema.org/latest/json-schema-validation.html
-[hyper]: http://json-schema.org/latest/json-schema-hypermedia.html
+[hyper]: https://json-schema.org/draft-07/json-hyper-schema-release-notes
 
 ### $ref and definitions
 
@@ -628,6 +645,52 @@ Show a video preview (using HTML5 video)
 
 The `href` property is a template that gets re-evaluated every time the value changes.
 The variable `self` is always available.  Look at the __Dependencies__ section below for how to include other fields or use a custom template engine.
+
+### if-then-else
+The if-then-else keywords are used to express conditional validation logic based on the evaluation of a specified condition. The if keyword defines a condition, and depending on whether it evaluates to true or false, the schema specified under either the then or else keywords will be applied.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "street_address": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string",
+      "default": "United States of America",
+      "enum": [
+        "United States of America",
+        "Canada"
+      ]
+    },
+    "postal_code": {
+      "type": "string"
+    }
+  },
+  "if": {
+    "properties": {
+      "country": {
+        "const": "United States of America"
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "postal_code": {
+        "pattern": "[0-9]{5}(-[0-9]{4})?"
+      }
+    }
+  },
+  "else": {
+    "properties": {
+      "postal_code": {
+        "pattern": "[A-Z][0-9][A-Z] [0-9][A-Z][0-9]"
+      }
+    }
+  }
+}
+```
 
 ### Property Ordering
 
@@ -724,7 +787,8 @@ Here is an example that will show a color picker in browsers that support it:
 
 #### String Editors Input Attributes
 
-You can set custom attributes such as **placeholder**, **class** and **data-** on the input field using the special options keyword `inputAttributes`.
+You can set custom attributes such as **placeholder**, **class** and **data-** on the input field and on the editor container
+using the special options keyword `inputAttributes` and `containerAttributes`.
 
 Like this:
 
@@ -738,6 +802,10 @@ Like this:
         "inputAttributes": {
           "placeholder":  "your name here...",
           "class": "myclass"
+        },
+        "containerAttributes": {
+          "data-container":  "my-container",
+          "class": "my-container-class"
         }
       }
     }
@@ -749,12 +817,12 @@ Like this:
 
 In addition to the standard HTML input formats, JSON Editor can also integrate with several 3rd party specialized editors.  These libraries are not included in JSON Editor and you must load them on the page yourself.
 
-__SCEditor__ provides WYSIWYG editing of HTML and BBCode.  To use it, set the format to `html` or `bbcode` and set the `wysiwyg` option to `true`:
+__SCEditor__ provides WYSIWYG editing of HTML and BBCode.  To use it, set the format to `xhtml` or `bbcode` and set the `wysiwyg` option to `true`:
 
 ```json
 {
   "type": "string",
-  "format": "html",
+  "format": "xhtml",
   "options": {
     "wysiwyg": true
   }
@@ -836,8 +904,10 @@ __Ace Editor__ is a syntax highlighting source code editor. You can use it by se
 *  pgsql
 *  php
 *  python
+*  prql
 *  r
 *  ruby
+*  rust
 *  sass
 *  scala
 *  scss
@@ -845,10 +915,12 @@ __Ace Editor__ is a syntax highlighting source code editor. You can use it by se
 *  sql
 *  stylus
 *  svg
+*  typescript
 *  twig
 *  vbscript
 *  xml
 *  yaml
+*  zig
 
 ```json
 {
@@ -913,10 +985,10 @@ Creates a button whose click callback can be defined in `JSONEditor.defaults.cal
 
 ```json
 {
-  "type": "button",
-  "title": "Search",
+  "format": "button",
   "options": {
     "button": {
+      "text": "Search",
       "icon": "search",
       "action": "myAction",
       "validated": true
@@ -931,7 +1003,7 @@ Displays a label and a description text.
 
 ```json
 {
-  "type": "info",
+  "format": "info",
   "title": "Important:",
   "description": "Lorem ipsum dolor"
 }
@@ -1012,15 +1084,34 @@ When an array item is added, removed, moved up, moved or removed the json editor
 editor.on('moveRow', editor => {
   console.log('moveRow', editor)
 });
+
 editor.on('addRow', editor => {
   console.log('addRow', editor)
 });
-editor.on('deleteRow', editor => {
-  console.log('deleteRow', editor)
+
+editor.on('deleteRow', deletedValue => {
+  console.log('deleteRow', deletedValue)
 });
-editor.on('deleteAllRows', editor => {
-  console.log('deleteAllRows', editor)
+
+editor.on('deleteAllRows', deletedValues => {
+  console.log('deleteAllRows', deletedValues)
 });
+```
+
+#### Schema loader events
+
+When schemas are loaded via a request, the `schemaLoaded` event is triggered individually for each schema after its loading.
+Once the loading of all schemas is completed, the `allSchemasLoaded` event is triggered.
+
+```javascript
+editor.on('schemaLoaded', (payload) => {
+  console.log('schemasLoaded', payload.schemaUrl)
+  console.log('schemasLoaded', payload.schema)
+})
+
+editor.on('allSchemasLoaded', () => {
+  console.log('allSchemasLoaded')
+})
 ```
 
 
@@ -1105,6 +1196,7 @@ Editor Options
 
 Editors can accept options which alter the behavior in some way.
 
+* `titleHidden` - If set to true, the editor title will be visually hidden
 * `collapsed` - If set to true, the editor will start collapsed (works for objects and arrays)
 * `disable_array_add` - If set to true, the "add row" button will be hidden (works for arrays)
 * `disable_array_delete` - If set to true, all of the "delete" buttons will be hidden (works for arrays)
@@ -1236,6 +1328,51 @@ Here's an example schema:
     }
   }
 }
+```
+
+Keys can also be an absolute path like `root.property.nested_property` 
+ 
+```json
+{
+    "title": "Person",
+    "type": "object",
+    "required": [
+      "gender"
+    ],
+    "properties": {
+      "gender": {
+        "title": "Gender",
+        "type": "string",
+        "enum": [
+          "female",
+          "male"
+        ]
+      },
+      "age": {
+        "type": "object",
+        "properties": {
+          "maleSpecificAge": {
+            "type": "string",
+            "title": "Male specific age question?",
+            "options": {
+              "dependencies": {
+                "root.gender": "male"
+              }
+            }
+          },
+          "femaleSpecificAge": {
+            "type": "string",
+            "title": "Female specific age question?",
+            "options": {
+              "dependencies": {
+                "root.gender": "female"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 ```
 
 The `dependencies` keyword from the JSON Schema specification is not nearly flexible enough to handle most use cases,
@@ -1580,7 +1717,7 @@ The `title` keyword of a schema is used to add user friendly headers to the edit
 Consider the example of an array of children.  Without dynamic headers, the UI for the array elements would show `Child 1`, `Child 2`, etc..
 It would be much nicer if the headers could be dynamic and incorporate information about the children, such as `1 - John (age 9)`, `2 - Sarah (age 11)`.
 
-To accomplish this, use the `headerTemplate` property.  All of the watched variables are passed into this template, along with the static title `title` (e.g. "Child"), the 0-based index `i0` (e.g. "0" and "1"), the 1-based index `i1`, and the field's value `self` (e.g. `{"name": "John", "age": 9}`).
+To accomplish this, use the `headerTemplate` property.  All of the watched variables are passed into this template, along with the static title `title` (e.g. "Child"), the 0-based index `i0` (e.g. "0" and "1"), the 1-based index `i1`, extra child variable `properties.${PROPERTY_NAME}.enumTitle` and the field's value `self` (e.g. `{"name": "John", "age": 9}`).
 
 ```js+jinja
 {
@@ -1589,10 +1726,18 @@ To accomplish this, use the `headerTemplate` property.  All of the watched varia
   "items": {
     "type": "object",
     "title": "Child",
-    "headerTemplate": "{{ i1 }} - {{ self.name }} (age {{ self.age }})",
+    "headerTemplate": "{{ i1 }} - {{ self.name }} (age {{ self.age }})  has a {{ properties.pet.enumTitle }}",
     "properties": {
       "name": { "type": "string" },
-      "age": { "type": "integer" }
+      "age": { "type": "integer" },
+      "pet": {
+          "title": "Pet",
+          "type": "string",
+          "enum": [ "pet_1", "pet_2" ],
+          "options": {
+            "enum_titles": [ "Dog", "Cat" ]
+          }
+        }
     }
   }
 }

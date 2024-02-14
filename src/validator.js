@@ -11,8 +11,130 @@ export class Validator {
     this.defaults = defaults
 
     this._validateSubSchema = {
+      dependentRequired (schema, value, path) {
+        const errors = []
+
+        if (typeof schema.dependentRequired !== 'undefined') {
+          let missingProperties = []
+
+          Object.keys(schema.dependentRequired).forEach((key) => {
+            if (typeof value[key] !== 'undefined') {
+              const requiredProperties = schema.dependentRequired[key]
+
+              missingProperties = requiredProperties.filter((property) => {
+                return !hasOwnProperty(value, property)
+              })
+            }
+          })
+
+          const invalid = missingProperties.length > 0
+
+          if (invalid) {
+            errors.push({
+              message: 'Must have the required properties: ' + missingProperties.join(', '),
+              path: path
+            })
+          }
+        }
+
+        return errors
+      },
+      dependentSchemas (schema, value, path) {
+        let errors = []
+
+        Object.keys(schema.dependentSchemas).forEach((key) => {
+          if (typeof value[key] !== 'undefined') {
+            const dependentSchema = schema.dependentSchemas[key]
+            const tmpErrors = this._validateSchema(dependentSchema, value, path)
+            errors = [...errors, ...tmpErrors]
+          }
+        })
+
+        return errors
+      },
+      contains (schema, value, path) {
+        const errors = []
+        let counter = 0
+
+        value.forEach((item) => {
+          const containsErrors = this._validateSchema(schema.contains, item, path)
+
+          if (containsErrors.length === 0) {
+            counter++
+          }
+        })
+
+        const containsInvalid = (counter === 0)
+
+        if (typeof schema.minContains !== 'undefined') {
+          const minContainsInvalid = (counter < schema.minContains)
+
+          if (minContainsInvalid) {
+            errors.push({
+              message: this.translate('error_minContains', [counter, schema.minContains], schema),
+              path: path
+            })
+          }
+        } else {
+          if (containsInvalid) {
+            errors.push({
+              message: this.translate('error_contains', null, schema),
+              path: path
+            })
+          }
+        }
+
+        if (typeof schema.maxContains !== 'undefined') {
+          const maxContainsInvalid = (counter > schema.maxContains)
+
+          if (maxContainsInvalid) {
+            errors.push({
+              message: this.translate('error_maxContains', [counter, schema.maxContains], schema),
+              path: path
+            })
+          }
+        }
+
+        return errors
+      },
+      if (schema, value, path) {
+        if (typeof schema.then === 'undefined' && typeof schema.else === 'undefined') {
+          return []
+        }
+
+        const ifErrors = this._validateSchema(schema.if, value, path)
+        let thenErrors = []
+        let elseErrors = []
+
+        if (typeof schema.then !== 'undefined') {
+          thenErrors = this._validateSchema(schema.then, value, path)
+        }
+
+        if (typeof schema.else !== 'undefined') {
+          elseErrors = this._validateSchema(schema.else, value, path)
+        }
+
+        if (schema.if === true) {
+          return thenErrors
+        }
+
+        if (schema.if === false) {
+          return elseErrors
+        }
+
+        if (ifErrors.length === 0) {
+          return thenErrors
+        }
+
+        if (ifErrors.length > 0) {
+          return elseErrors
+        }
+
+        return []
+      },
       const (schema, value, path) {
-        const valid = JSON.stringify(schema.const) === JSON.stringify(value) && !(Array.isArray(value) || typeof value === 'object')
+        const valid = JSON.stringify(schema.const) === JSON.stringify(value)
+
         if (!valid) {
           return [{
             path,
@@ -796,9 +918,9 @@ export class Validator {
     }
 
     const validatorRx = {
-      date: /^(\d{4}\D\d{2}\D\d{2})?$/,
-      time: /^(\d{2}:\d{2}(?::\d{2})?)?$/,
-      'datetime-local': /^(\d{4}\D\d{2}\D\d{2}[ T]\d{2}:\d{2}(?::\d{2})?)?$/
+      date: /^(\d{4}\D\d{2}\D\d{2})$/,
+      time: /^(\d{2}:\d{2}(?::\d{2})?)$/,
+      'datetime-local': /^(\d{4}\D\d{2}\D\d{2}[ T]\d{2}:\d{2}(?::\d{2})?)$/
     }
     const format = {
       date: '"YYYY-MM-DD"',
@@ -824,6 +946,7 @@ export class Validator {
       /* Flatpickr validation */
       return _validateFlatPicker(schema, value, path, editor)
     }
+
     return []
   }
 

@@ -105,8 +105,15 @@ export class AbstractTheme {
     return el
   }
 
+  getLabelLike (text, req) {
+    const el = document.createElement('b')
+    el.appendChild(document.createTextNode(text))
+    if (req) el.classList.add('required')
+    return el
+  }
+
   getHeader (text, pathDepth) {
-    const el = document.createElement('h3')
+    const el = document.createElement('span')
     if (typeof text === 'string') {
       el.textContent = text
     } else {
@@ -177,13 +184,19 @@ export class AbstractTheme {
     return el
   }
 
-  getFormRadioControl (label, input, compact) {
+  getFormRadioControl (label, input, compact, formName) {
     const el = document.createElement('div')
     el.appendChild(label)
     input.style.width = 'auto'
     label.insertBefore(input, label.firstChild)
     if (compact) {
       el.classList.add('je-radio-control--compact')
+    }
+
+    if (input.tagName.toLowerCase() !== 'div' && formName && label && input) {
+      input.setAttribute('id', formName)
+      input.setAttribute('aria-labelledby', formName)
+      label.setAttribute('for', formName)
     }
 
     return el
@@ -225,11 +238,39 @@ export class AbstractTheme {
     return el
   }
 
-  getRangeInput (min, max, step) {
+  getHiddenLabel (text) {
+    const el = document.createElement('label')
+    el.textContent = text
+    el.setAttribute('style', 'position: absolute;width: 1px;height: 1px;padding: 0;margin: -1px;overflow: hidden;clip: rect(0,0,0,0);border: 0;')
+    return el
+  }
+
+  visuallyHidden (element) {
+    if (!element) {
+      return
+    }
+
+    element.setAttribute('style', 'position: absolute;width: 1px;height: 1px;padding: 0;margin: -1px;overflow: hidden;clip: rect(0,0,0,0);border: 0;')
+  }
+
+  getHiddenText (text) {
+    const el = document.createElement('span')
+    el.textContent = text
+    el.setAttribute('style', 'position: absolute;width: 1px;height: 1px;padding: 0;margin: -1px;overflow: hidden;clip: rect(0,0,0,0);border: 0;')
+    return el
+  }
+
+  getRangeInput (min, max, step, description, formName) {
     const el = this.getFormInputField('range')
     el.setAttribute('min', min)
     el.setAttribute('max', max)
     el.setAttribute('step', step)
+
+    if (description) {
+      description.setAttribute('id', formName + '-description')
+      el.setAttribute('aria-describedby', formName + '-description')
+    }
+
     return el
   }
 
@@ -297,7 +338,7 @@ export class AbstractTheme {
     return div
   }
 
-  getRangeOutput (input, startvalue) {
+  getRangeOutput (input) {
     const output = document.createElement('output')
     const updateOutput = e => { output.value = e.currentTarget.value }
     input.addEventListener('change', updateOutput, false)
@@ -337,6 +378,16 @@ export class AbstractTheme {
     } else {
       if (infoText && label) label.appendChild(infoText)
       el.appendChild(input)
+    }
+
+    if (input.tagName.toLowerCase() !== 'div' && input && label && formName) {
+      label.setAttribute('for', formName)
+      input.setAttribute('id', formName)
+    }
+
+    if (input.tagName.toLowerCase() !== 'div' && input && description) {
+      description.setAttribute('id', formName + '-description')
+      input.setAttribute('aria-describedby', formName + '-description')
     }
 
     if (description) el.appendChild(description)
@@ -414,6 +465,10 @@ export class AbstractTheme {
     if (title) button.setAttribute('title', title)
   }
 
+  getTableContainer () {
+    return document.createElement('div')
+  }
+
   /* Table functions */
   getTable () {
     return document.createElement('table')
@@ -451,6 +506,7 @@ export class AbstractTheme {
   }
 
   addInputError (input, text) {
+    input.errmsg.setAttribute('role', 'alert')
   }
 
   removeInputError (input) {

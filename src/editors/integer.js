@@ -10,10 +10,13 @@ export class IntegerEditor extends NumberEditor {
     if (!this.dependenciesFulfilled) {
       return undefined
     }
-    const value = isInteger(this.value) ? parseInt(this.value) : this.value
-    if (!this.jsoneditor.options.use_default_values && value === '') {
-      return undefined
+
+    if (!this.schema.default && !this.jsoneditor.options.use_default_values && this.value === '') {
+      if (this.shouldBeUnset()) {
+        return undefined
+      }
+    } else {
+      return isInteger(this.value) ? parseInt(this.value) : this.value
     }
-    return value
   }
 }

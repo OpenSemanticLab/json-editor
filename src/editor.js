@@ -15,6 +15,7 @@ export class AbstractEditor {
     this.original_schema = options.schema
     this.schema = this.jsoneditor.expandSchema(this.original_schema)
     this.active = true
+    this.isUiOnly = false
     this.options = extend({}, (this.options || {}), (this.schema.options || {}), (options.schema.options || {}), options)
 
     this.formname = this.jsoneditor.options.form_name_root || 'root'
@@ -54,6 +55,10 @@ export class AbstractEditor {
 
   register () {
     this.jsoneditor.registerEditor(this)
+    if (this.input && !this.label) {
+      const ariaLabel = this.getTitle() || this.formname
+      this.input.setAttribute('aria-label', ariaLabel)
+    }
     this.onChange()
   }
 
@@ -95,9 +100,17 @@ export class AbstractEditor {
     }
 
     Object.keys(deps).forEach(dependency => {
-      let path = this.path.split('.')
-      path[path.length - 1] = dependency
-      path = path.join('.')
+      let path
+      const isFullPath = dependency.startsWith(this.jsoneditor.root.path)
+
+      if (isFullPath) {
+        path = dependency
+      } else {
+        path = this.path.split('.')
+        path[path.length - 1] = dependency
+        path = path.join('.')
+      }
+
       this.jsoneditor.watch(path, () => {
         this.evaluateDependencies()
       })
@@ -114,14 +127,23 @@ export class AbstractEditor {
     if (!deps) {
       return
     }
+
     // Assume true and set to false if any unmet dependencies are found
     const previousStatus = this.dependenciesFulfilled
     this.dependenciesFulfilled = true
 
     Object.keys(deps).forEach(dependency => {
-      let path = this.path.split('.')
-      path[path.length - 1] = dependency
-      path = path.join('.')
+      let path
+      const isFullPath = dependency.startsWith(this.jsoneditor.root.path)
+
+      if (isFullPath) {
+        path = dependency
+      } else {
+        path = this.path.split('.')
+        path[path.length - 1] = dependency
+        path = path.join('.')
+      }
+
       const choices = deps[dependency]
       this.checkDependency(path, choices)
     })
@@ -184,6 +206,7 @@ export class AbstractEditor {
 
   setContainer (container) {
     this.container = container
+    this.setContainerAttributes()
     if (this.schema.id) this.container.setAttribute('data-schemaid', this.schema.id)
     if (this.schema.type && typeof this.schema.type === 'string') this.container.setAttribute('data-schematype', this.schema.type)
     this.container.setAttribute('data-schemapath', this.path)
@@ -192,9 +215,12 @@ export class AbstractEditor {
   setOptInCheckbox (header) {
     /* the active/deactive checbox control. */
 
+    this.optInLabel = this.theme.getHiddenLabel(this.formname + ' opt-in')
+    this.optInLabel.setAttribute('for', this.formname + '-opt-in')
     this.optInCheckbox = document.createElement('input')
     this.optInCheckbox.setAttribute('type', 'checkbox')
     this.optInCheckbox.setAttribute('style', 'margin: 0 10px 0 0;')
+    this.optInCheckbox.setAttribute('id', this.formname + '-opt-in')
     this.optInCheckbox.classList.add('json-editor-opt-in')
 
     this.optInCheckbox.addEventListener('click', () => {
@@ -213,6 +239,7 @@ export class AbstractEditor {
     if (parentOptInEnabled || (!parentOptInDisabled && globalOptIn) || (!parentOptInDefined && globalOptIn)) {
       /* and control to type object editors if they are not required */
       if (this.parent && this.parent.schema.type === 'object' && !this.isRequired() && this.header) {
+        this.header.appendChild(this.optInLabel)
         this.header.appendChild(this.optInCheckbox)
         this.header.insertBefore(this.optInCheckbox, this.header.firstChild)
       }
@@ -230,10 +257,15 @@ export class AbstractEditor {
   postBuild () {
     this.setupWatchListeners()
     this.addLinks()
+    this.register()
     this.setValue(this.getDefault(), true)
     this.updateHeaderText()
-    this.register()
     this.onWatchedFieldChange()
+
+    if (this.options.titleHidden) {
+      this.theme.visuallyHidden(this.label)
+      this.theme.visuallyHidden(this.header)
+    }
   }
 
   setupWatchListeners () {
@@ -492,6 +524,7 @@ export class AbstractEditor {
 
   onWatchedFieldChange () {
     let vars
+
     if (this.header_template) {
       vars = extend(this.getWatchedFieldValues(), {
         key: this.key,
@@ -500,6 +533,24 @@ export class AbstractEditor {
         i1: (this.key * 1 + 1),
         title: this.getTitle()
       })
+
+      // object properties
+      if (this.editors && Object.keys(this.editors).length) {
+        vars.properties = {}
+
+        Object.keys(this.editors).forEach((key) => {
+          const editor = this.editors[key]
+
+          if (editor.schema && editor.schema.enum && editor.schema.options && editor.schema.options.enum_titles) {
+            const enumIndex = editor.schema.enum.indexOf(editor.value)
+            const enumTitle = editor.options.enum_titles[enumIndex]
+            vars.properties[key] = {
+              enumTitle: enumTitle
+            }
+          }
+        })
+      }
+
       const headerText = this.header_template(vars)
 
       if (headerText !== this.header_text) {
@@ -579,16 +630,17 @@ export class AbstractEditor {
       if (type === 'number') return this.isDefaultRequired() ? 0.0 : undefined
       if (type === 'boolean') return this.isDefaultRequired() ? false : undefined
       if (type === 'integer') return this.isDefaultRequired() ? 0 : undefined
-      if (type === 'string') return ''
+      if (type === 'string') return this.isDefaultRequired() ? '' : undefined
+      if (type === 'null') return null
       if (type === 'object') return {}
       if (type === 'array') return []
     }
 
-    return null
+    return undefined
   }
 
   getTitle () {
-    return this.translateProperty(this.schema.title || this.key)
+    return this.translateProperty(this.schema.title || this.key || this.formname)
   }
 
   enable () {
@@ -645,7 +697,7 @@ export class AbstractEditor {
       else if (el.title && used[el.title] <= 1) name = el.title
       else if (el.format && used[el.format] <= 1) name = el.format
       else if (el.type && used[el.type] <= 1) name = el.type
-      else if (el.description && used[el.description] <= 1) name = el.descripton
+      else if (el.description && used[el.description] <= 1) name = el.description
       else if (el.title) name = el.title
       else if (el.format) name = el.format
       else if (el.type) name = el.type
@@ -681,6 +733,18 @@ export class AbstractEditor {
       Object.keys(inputAttributes).forEach(key => {
         if (!protectedAttributes.includes(key.toLowerCase())) {
           this.input.setAttribute(key, inputAttributes[key])
+        }
+      })
+    }
+  }
+
+  setContainerAttributes () {
+    if (this.schema.options && this.schema.options.containerAttributes) {
+      const containerAttributes = this.schema.options.containerAttributes
+      const protectedAttributes = ['data-schemapath', 'data-schematype', 'data-schemaid']
+      Object.keys(containerAttributes).forEach(key => {
+        if (!protectedAttributes.includes(key.toLowerCase())) {
+          this.container.setAttribute(key, containerAttributes[key])
         }
       })
     }

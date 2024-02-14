@@ -1,8 +1,136 @@
 ### Unreleased
 
-### dev
+### 2.14.1
+
+- Fixed issue #1272 Multiple editor incorrect dependency inheritance
+- Improved Multiple editor accessibility
+- Fixed issue #1485 Infinite loop due to template rendering bug
+- Fixed issue #1171 Radio inputs without names having multiple checking marks
+- Fixed issue #1491 Wrong error messages displayed in some edge scenarios
+- Fixed issue #1466 memory leak in array editor
+
+### 2.14.0
+
+- Added new editor option "titleHidden"
+- Integrated "readOnly" for array and object editors
+- Fixed date, time and datetime-local validator
+- Fixed several accessibility issues. Note: Some forms may have new/modified attributes ("aria", "id", "for" and more)
+- Updated "format": "info" editors documentation
+
+### 2.13.2
+
+- Fixed early validation with boolean types
+- Refactored copy command using navigator
+- Fixed const validator when validating arrays and objects
+- Fixed issue format buttons disable state
+- Fixed issue #1453 setup buttons in array editor correctly if editor is initially collapsed
+- Fixed issue #1461 setup buttons in array editor correctly if there exists another enum-typed property for which the default value does not equal to the first value
+- Fixed issue #1466 memory leak in array editor
+
+### 2.13.1
+
+- Fixed bug in enumTitle for headerTemplates
+
+### 2.13.0
+
+- Added feature #1448 enumTitle for headerTemplates
+- Fixed issue #1442 tpe button editors
+- Fixed issue #1433 simplemde editor data sync
+- Added schema validation in playground
+- Fixed tests timing issues
+
+### 2.12.0
+
+- Fixed issue #1422: use_default_values: false deletes valid values while true sets invalid default values
+- Added feature: load-events
+- Fixed issue #1410: Schema for "additionalProperties" does not override "no_additional_properties: true"
+- Added feature: table-responsive
+- Fixed readme-broken-link
+- Updated integrity checks in example pages
+
+### 2.11.0
+
+- Fixed issue #746 and #645: Selectize with create = true should add items
+- Added case_sensitive_property_search option
+- Added specialized editors for ace (PRQL, Rust, TypeScript, Zig)
+- Fixed bug: items schemas not being expanded on time when using $ref
+- Added tests for schema loader
+- Added docs for if-then-else
+- Updated playground ace editor config
+- Added button_state_mode options
+- Added support for case-insensitive properties search
+- Fixed issue #746 and #645 Selectize with create = true should add Items
+- Added support for case insensitive properties search
+- Added support for dependentRequired constrains
+- Fixed issue #1367: Signature editor not returning base64 data
+- Fixed issue #1237: more coherent ui for Base64 editor
+- Fixed issue #1364: getValue() with dependencies
+- Added new languages: PRQL, Rust, TypeScript and Zig.
+
+### 2.10.1
+
+- Added keep_only_existing_values option
+- Fixed if-then-else edge case bug with disabled fields
+
+### 2.10.0
+
+- Fixed schema loader bug and added test for relative issues 
+- Using multiple for schemas with if-then-else
+- Added support for shell script highlighting
+- Added support for contains, minContains and maxContains constrains
+- Added support for if-then-else constrains
+- Added support for dependentSchemas constrains
+- Added support for absolute paths in dependencies
+- Added support for bootstrap icons
+- Added custom editor example page
+- Added bootstrap 5 theme option in example page
+- Fixed property checkboxes display
+- Updated array delete message
+- Refactored tests with codeceptjs native waitForValue()
+- Fixed bootstrap 3 import warnings
+- Updated autocomplete example with library css
+
+### 2.9.1
+
+- Fixed past merge
+
+### 2.9.0
+
+- Updated datetime example page
+- Updated packages
+- Fixed issue #1133: default values for each of the oneOf options
+- Upgraded codeceptjs from 2 to 3
+- Fixed npm audit issues
+- Fixed unnecessary Null values included in enums
+- Fixed radio editors not recognising numerical values
+
+### 2.9.0-beta.1
+
+- Fixed editors default values bug
+- Fixed typo in example schema
+- Fixed color editors default value bug
+- Improved docs page UI with ACE editor and some spacing
+- Fixed hidden option for upload editor
+- Fixed array editors events and callbacks params
+- Added link to GitHub repo in docs page
+- Fixed typo in code
+- Added test for meta-schema scenario
+- Added test for $ref schema with oneOf/anyOf scenario
+- Added Bootstrap 5 theme
+- Removed !important flags from CSS
+- Added upload translations
+- Updated SCEditor documentation
+- Fixed test waits
+- Fixed per editor Options
+- Fixed bug in tailwind and barebones theme. Append errors to element that exist.
+- Fixed #1194 Event listener removed after destroy
+- Added setContainerAttributes option
+- Fixed select2/selectize cannnot add new option
+
+### 2.9.0-beta.0
 
 - Enh #1162 Added cache system for schema loader (chhill-redhat)
+- Added warnings undefined callbacks
 
 ### 2.8.0
 

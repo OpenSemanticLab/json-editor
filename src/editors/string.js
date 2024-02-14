@@ -8,7 +8,6 @@ export class StringEditor extends AbstractEditor {
     if (this.jsoneditor.options.use_name_attributes) {
       this.input.setAttribute('name', this.formname)
     }
-    this.input.setAttribute('aria-label', this.formname)
   }
 
   unregister () {
@@ -51,7 +50,9 @@ export class StringEditor extends AbstractEditor {
     if (this.adjust_height) this.adjust_height(this.input)
 
     /* Bubble this setValue to parents if the value changed */
-    this.onChange(changed)
+    if (!fromTemplate) {
+      this.onChange(changed)
+    }
 
     /* Return object with changed state and sanitized value for use in editors that extend this */
     return { changed, value: sanitized }
@@ -106,7 +107,8 @@ export class StringEditor extends AbstractEditor {
           step = this.schema.multipleOf
         }
 
-        this.input = this.theme.getRangeInput(min, max, step)
+        this.input = this.theme.getRangeInput(min, max, step, this.description, this.formname)
+        this.input.setAttribute('id', this.formname)
         /* HTML5 Input type */
       } else {
         this.input_type = 'text'
@@ -291,6 +293,7 @@ export class StringEditor extends AbstractEditor {
 
   getValue () {
     const hasValueSet = !!(this.input && this.input.value)
+
     if (this.shouldBeUnset() && !hasValueSet) {
       return undefined
     }
@@ -319,6 +322,9 @@ export class StringEditor extends AbstractEditor {
   }
 
   refreshValue () {
+    if (!this.input) {
+      return
+    }
     this.value = this.input.value
     if (typeof this.value !== 'string' && !this.shouldBeUnset()) this.value = ''
     this.serialized = this.value

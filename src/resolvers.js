@@ -1,11 +1,14 @@
-/* Use "multiple" as a fall back for everything */
+/* Use "multiple" as a fallback for everything */
 const defaultResolver = schema => typeof schema.type !== 'string' && 'multiple'
+
+/* If the type is a script type, then presume the Editor's type is "string" until later resolvers decide otherwise */
+const defaultResolverString = schema => typeof schema.type === 'string' && 'string'
 
 /* If the type is not set but properties are defined, we can infer the type is actually object */
 const object = schema => !schema.type && schema.properties && 'object'
 
-/* If the type is set and it's a basic type, use the primitive editor */
-const primitive = schema => typeof schema.type === 'string' && schema.type
+/* If type is set, and it's a basic JSON type, use the primitive editor */
+const primitive = schema => typeof schema.type === 'string' && ['string', 'number', 'integer', 'boolean', 'null', 'array', 'object'].includes(schema.type) && schema.type
 
 /* Use specialized editor for signatures */
 const signature = schema => schema.type === 'string' && schema.format === 'signature' && 'signature'
@@ -61,7 +64,11 @@ const enumeratedProperties = schema => {
 }
 
 /* Specialized editors for arrays of strings */
-const arraysOfStrings = schema => {
+const arraysOfStrings = (schema, je) => {
+  if (schema.items) {
+    schema.items = je.expandSchema(schema.items)
+  }
+
   if (schema.type === 'array' && schema.items && !(Array.isArray(schema.items)) && ['string', 'number', 'integer'].includes(schema.items.type)) {
     if (schema.format === 'choices') return 'arrayChoices'
     if (schema.uniqueItems) {
@@ -75,6 +82,9 @@ const arraysOfStrings = schema => {
 
 /* Use the multiple editor for schemas with `oneOf` or `anyOf` set */
 const oneOf = schema => (schema.oneOf || schema.anyOf) && 'multiple'
+
+/* Use the multiple editor for schemas with `if` set */
+const ifThenElse = schema => (schema.if) && 'multiple'
 
 /* Specialized editor for date, time and datetime-local formats */
 const date = schema => ['string', 'integer'].includes(schema.type) && ['date', 'time', 'datetime-local'].includes(schema.format) && 'datetime'
@@ -114,7 +124,7 @@ const markdown = schema => schema.type === 'string' && schema.format === 'markdo
 const xhtml = schema => schema.type === 'string' && ['xhtml', 'bbcode'].includes(schema.format) && 'sceditor'
 
 /* Use the ace editor for schemas with format equals any of ace editor modes */
-const aceModes = ['actionscript', 'batchfile', 'c', 'c++', 'cpp', 'coffee', 'csharp', 'css', 'dart', 'django', 'ejs', 'erlang', 'golang', 'groovy', 'handlebars', 'haskell', 'haxe', 'html', 'ini', 'jade', 'java', 'javascript', 'json', 'less', 'lisp', 'lua', 'makefile', 'matlab', 'mysql', 'objectivec', 'pascal', 'perl', 'pgsql', 'php', 'python', 'r', 'ruby', 'sass', 'scala', 'scss', 'smarty', 'sql', 'sqlserver', 'stylus', 'svg', 'twig', 'vbscript', 'xml', 'yaml']
+const aceModes = ['actionscript', 'batchfile', 'c', 'c++', 'cpp', 'coffee', 'csharp', 'css', 'dart', 'django', 'ejs', 'erlang', 'golang', 'groovy', 'handlebars', 'haskell', 'haxe', 'html', 'ini', 'jade', 'java', 'javascript', 'json', 'less', 'lisp', 'lua', 'makefile', 'matlab', 'mysql', 'objectivec', 'pascal', 'perl', 'pgsql', 'php', 'python', 'prql', 'r', 'ruby', 'rust', 'sass', 'scala', 'scss', 'sh', 'smarty', 'sql', 'sqlserver', 'stylus', 'svg', 'typescript', 'twig', 'vbscript', 'xml', 'yaml', 'zig']
 const ace = schema => schema.type === 'string' && aceModes.includes(schema.format) && 'ace'
 
 const ip = schema => schema.type === 'string' && ['ip', 'ipv4', 'ipv6', 'hostname'].includes(schema.format) && 'ip'
@@ -122,4 +132,4 @@ const ip = schema => schema.type === 'string' && ['ip', 'ipv4', 'ipv6', 'hostnam
 const colorPicker = schema => schema.type === 'string' && schema.format === 'color' && 'colorpicker'
 
 /* Export resolvers in order of discovery, first to last */
-export const resolvers = [colorPicker, ip, ace, xhtml, markdown, jodit, autoComplete, uuid, info, button, stepper, describeBy, starratings, date, oneOf, arraysOfStrings, enumeratedProperties, enumSource, table, upload, base64, any, boolean, signature, primitive, object, defaultResolver]
+export const resolvers = [colorPicker, ip, ace, xhtml, markdown, jodit, autoComplete, uuid, info, button, stepper, describeBy, starratings, date, oneOf, ifThenElse, arraysOfStrings, enumeratedProperties, enumSource, table, upload, base64, any, boolean, signature, primitive, object, defaultResolver, defaultResolverString]

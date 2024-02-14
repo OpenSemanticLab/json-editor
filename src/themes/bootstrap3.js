@@ -1,5 +1,5 @@
 import { AbstractTheme } from '../theme.js'
-import rules from './bootstrap3.css'
+import rules from './bootstrap3.css.js'
 
 export class bootstrap3Theme extends AbstractTheme {
   getSelectInput (options, multiple) {
@@ -22,11 +22,6 @@ export class bootstrap3Theme extends AbstractTheme {
     if (this.closest(input, '.compact')) {
       input.controlgroup.style.marginBottom = 0
     }
-    if (this.queuedInputErrorText) {
-      const text = this.queuedInputErrorText
-      delete this.queuedInputErrorText
-      this.addInputError(input, text)
-    }
 
     /* TODO: use bootstrap slider */
   }
@@ -37,9 +32,9 @@ export class bootstrap3Theme extends AbstractTheme {
     return el
   }
 
-  getRangeInput (min, max, step) {
+  getRangeInput (min, max, step, description, formName) {
     /* TODO: use better slider */
-    return super.getRangeInput(min, max, step)
+    return super.getRangeInput(min, max, step, description, formName)
   }
 
   getFormInputField (type) {
@@ -50,7 +45,29 @@ export class bootstrap3Theme extends AbstractTheme {
     return el
   }
 
-  getFormControl (label, input, description, infoText) {
+  getHiddenLabel (text) {
+    const el = document.createElement('label')
+    el.textContent = text
+    el.classList.add('sr-only')
+    return el
+  }
+
+  visuallyHidden (element) {
+    if (!element) {
+      return
+    }
+
+    element.classList.add('sr-only')
+  }
+
+  getHiddenText (text) {
+    const el = document.createElement('span')
+    el.textContent = text
+    el.classList.add('sr-only')
+    return el
+  }
+
+  getFormControl (label, input, description, infoText, formName) {
     const group = document.createElement('div')
 
     if (label && (input.type === 'checkbox' || input.type === 'radio')) {
@@ -69,6 +86,16 @@ export class bootstrap3Theme extends AbstractTheme {
     }
 
     if (description) group.appendChild(description)
+
+    if (input.tagName.toLowerCase() !== 'div' && input && label && formName) {
+      label.setAttribute('for', formName)
+      input.setAttribute('id', formName)
+    }
+
+    if (input.tagName.toLowerCase() !== 'div' && input && description) {
+      description.setAttribute('id', formName + '-description')
+      input.setAttribute('aria-describedby', formName + '-description')
+    }
 
     return group
   }
@@ -118,6 +145,19 @@ export class bootstrap3Theme extends AbstractTheme {
     return el
   }
 
+  getHeader (text, pathDepth) {
+    const el = document.createElement('span')
+    el.classList.add('h3')
+
+    if (typeof text === 'string') {
+      el.textContent = text
+    } else {
+      el.appendChild(text)
+    }
+
+    return el
+  }
+
   getHeaderButtonHolder () {
     const el = this.getButtonHolder()
     el.style.marginLeft = '10px'
@@ -136,6 +176,12 @@ export class bootstrap3Theme extends AbstractTheme {
     return el
   }
 
+  getTableContainer () {
+    const el = super.getTableContainer()
+    el.classList.add('table-responsive')
+    return el
+  }
+
   getTable () {
     const el = document.createElement('table')
     el.classList.add('table', 'table-bordered')
@@ -146,7 +192,6 @@ export class bootstrap3Theme extends AbstractTheme {
 
   addInputError (input, text) {
     if (!input.controlgroup) {
-      this.queuedInputErrorText = text
       return
     }
     input.controlgroup.classList.add('has-error')
@@ -159,12 +204,10 @@ export class bootstrap3Theme extends AbstractTheme {
     }
 
     input.errmsg.textContent = text
+    input.errmsg.setAttribute('role', 'alert')
   }
 
   removeInputError (input) {
-    if (!input.controlgroup) {
-      delete this.queuedInputErrorText
-    }
     if (!input.errmsg) return
     input.errmsg.style.display = 'none'
     input.controlgroup.classList.remove('has-error')

@@ -7,13 +7,16 @@ export class barebonesTheme extends AbstractTheme {
       const group = this.closest(input, '.form-control')
       input.errmsg = document.createElement('div')
       input.errmsg.setAttribute('class', 'errmsg')
-      group.appendChild(input.errmsg)
+      if (group.nodeName) {
+        group.appendChild(input.errmsg)
+      }
     } else {
       input.errmsg.style.display = 'block'
     }
 
     input.errmsg.innerHTML = ''
     input.errmsg.appendChild(document.createTextNode(text))
+    input.errmsg.setAttribute('role', 'alert')
   }
 
   removeInputError (input) {

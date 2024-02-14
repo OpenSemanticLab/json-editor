@@ -4,7 +4,7 @@ Feature('themes')
 
 // nothing
 
-Scenario('It should display button Labels: null | null', async (I) => {
+Scenario('It should display button Labels: null | null', async ({ I }) => {
   I.amOnPage('themes.html')
   I.waitForText('Themes Test Page')
   I.waitForText('Collapse')
@@ -19,7 +19,7 @@ Scenario('It should display button Labels: null | null', async (I) => {
 
 // only themes
 
-Scenario('It should display button Labels: barebones | null', async (I) => {
+Scenario('It should display button Labels: barebones | null', async ({ I }) => {
   I.amOnPage('themes.html')
   I.waitForText('Themes Test Page')
   I.waitForText('Collapse')
@@ -32,7 +32,7 @@ Scenario('It should display button Labels: barebones | null', async (I) => {
   I.waitForText('Move up')
 })
 
-Scenario('It should display button Labels: spectre | null', async (I) => {
+Scenario('It should display button Labels: spectre | null', async ({ I }) => {
   I.amOnPage('themes.html')
   I.selectOption('theme', 'Spectre')
   I.waitForText('Themes Test Page')
@@ -138,7 +138,21 @@ Scenario('It should display button Labels: foundation3 | null', async (I) => {
 })
 */
 
-Scenario('It should display button Labels: bootstrap4 | null', async (I) => {
+Scenario('It should display button Labels: bootstrap5 | null', async ({ I }) => {
+  I.amOnPage('themes.html')
+  I.selectOption('theme', 'Bootstrap 5')
+  I.waitForText('Themes Test Page')
+  I.waitForText('Collapse')
+  I.waitForText('Edit JSON')
+  I.waitForText('Object Properties')
+  I.waitForText('Delete item')
+  I.waitForText('Delete Last item')
+  I.waitForText('Delete All')
+  I.waitForText('Move down')
+  I.waitForText('Move up')
+})
+
+Scenario('It should display button Labels: bootstrap4 | null', async ({ I }) => {
   I.amOnPage('themes.html')
   I.selectOption('theme', 'Bootstrap 4')
   I.waitForText('Themes Test Page')
@@ -152,7 +166,7 @@ Scenario('It should display button Labels: bootstrap4 | null', async (I) => {
   I.waitForText('Move up')
 })
 
-Scenario('It should display button Labels: bootstrap3 | null', async (I) => {
+Scenario('It should display button Labels: bootstrap3 | null', async ({ I }) => {
   I.amOnPage('themes.html')
   I.selectOption('theme', 'Bootstrap 3')
   I.waitForText('Themes Test Page')
@@ -213,7 +227,7 @@ Scenario('It should display button Labels: bootstrap2 | null', async (I) => {
   I.seeElementInDOM('i.icon-list')
 })
  */
-Scenario('It should hide button Labels: null | bootstrap3', async (I) => {
+Scenario('It should hide button Labels: null | bootstrap3', async ({ I }) => {
   I.amOnPage('themes.html')
   I.selectOption('iconlib', 'Bootstrap 3')
   I.waitForText('Themes Test Page')
@@ -242,6 +256,37 @@ Scenario('It should hide button Labels: null | bootstrap3', async (I) => {
   I.seeElementInDOM('i.glyphicon.glyphicon-copy')
   I.seeElementInDOM('i.glyphicon.glyphicon-list')
 })
+
+Scenario('It should hide button Labels: null | bootstrap icons @themes @iconlib', async ({ I }) => {
+  I.amOnPage('themes.html')
+  I.selectOption('iconlib', 'bootstrap')
+  I.waitForText('Themes Test Page')
+  I.dontSee('Collapse')
+  I.dontSee('Edit JSON')
+  I.dontSee('Object Properties')
+  I.dontSee('Delete item')
+  I.dontSee('Delete Last item')
+  I.dontSee('Delete All')
+  I.dontSee('Move down')
+  I.dontSee('Move up')
+
+  I.click('Collapse')
+  I.seeElementInDOM('i.bi.bi-chevron-down')
+  I.seeElementInDOM('i.bi.bi-chevron-right')
+  I.seeElementInDOM('i.bi.bi-trash')
+  I.seeElementInDOM('i.bi.bi-pencil')
+  I.seeElementInDOM('i.bi.bi-plus')
+  I.seeElementInDOM('i.bi.bi-dash')
+  I.seeElementInDOM('i.bi.bi-x-circle')
+  I.seeElementInDOM('i.bi.bi-save')
+  I.seeElementInDOM('i.bi.bi-arrow-up')
+  I.seeElementInDOM('i.bi.bi-arrow-right')
+  I.seeElementInDOM('i.bi.bi-arrow-down')
+  I.seeElementInDOM('i.bi.bi-arrow-left')
+  I.seeElementInDOM('i.bi.bi-clipboard')
+  I.seeElementInDOM('i.bi.bi-list-ul')
+})
+
 /*
 Scenario('It should hide button Labels: null | fontawesome3', async (I) => {
   I.amOnPage('themes.html')
@@ -455,7 +500,7 @@ Scenario('It should hide button Labels: null | openiconic', async (I) => {
   I.seeElementInDOM('i.oi-icon.oi-icon-list')
 })
 */
-Scenario('It should hide button Labels: null | spectre', async (I) => {
+Scenario('It should hide button Labels: null | spectre', async ({ I }) => {
   I.amOnPage('themes.html')
   I.selectOption('iconlib', 'Spectre')
   I.waitForText('Themes Test Page')
@@ -487,7 +532,7 @@ Scenario('It should hide button Labels: null | spectre', async (I) => {
 
 // icons + themes
 
-Scenario('It should hide button Labels: spectre | spectre', async (I) => {
+Scenario('It should hide button Labels: spectre | spectre', async ({ I }) => {
   I.amOnPage('themes.html')
   I.selectOption('theme', 'Spectre')
   I.selectOption('iconlib', 'Spectre')

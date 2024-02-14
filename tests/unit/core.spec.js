@@ -21,15 +21,12 @@ describe('JSONEditor', function () {
 
   // inject the HTML fixture for the tests
   beforeEach(() => {
-    const fixture = '<div id="fixture"></div>'
-
-    document.body.insertAdjacentHTML('afterbegin', fixture)
+    document.body.insertAdjacentHTML('afterbegin', '<div id="fixture"></div>')
     element = document.getElementById('fixture')
   })
 
-  // remove the html fixture from the DOM
   afterEach(() => {
-    document.body.removeChild(document.getElementById('fixture'))
+    editor.destroy()
   })
 
   it('should create an editor', () => {
@@ -217,7 +214,7 @@ describe('JSONEditor', function () {
         editor.promise.then(() => {
           expect(editor.getValue()).toEqual({
             boolean: undefined,
-            enum: undefined,
+            enum: 'foo',
             integer: undefined,
             number: undefined,
             string: undefined,
@@ -235,7 +232,7 @@ describe('JSONEditor', function () {
         editor.promise.then(() => {
           expect(editor.getValue()).toEqual({
             boolean: undefined,
-            enum: undefined,
+            enum: 'foo',
             integer: undefined,
             number: undefined,
             string: undefined,
@@ -249,7 +246,7 @@ describe('JSONEditor', function () {
 
           expect(editor.getValue()).toEqual({
             boolean: undefined,
-            enum: undefined,
+            enum: 'foo',
             integer: 3,
             number: 4,
             string: 'foo',
@@ -263,7 +260,7 @@ describe('JSONEditor', function () {
 
           expect(editor.getValue()).toEqual({
             boolean: undefined,
-            enum: undefined,
+            enum: 'foo',
             integer: undefined,
             number: undefined,
             string: '',
@@ -290,7 +287,8 @@ describe('JSONEditor', function () {
         editor.promise.then(() => {
           expect(editor.getValue()).toEqual({
             string_with_default: 'foobar',
-            enum_with_default: 'foobar'
+            enum_with_default: 'foobar',
+            enum_without_default: 'foobar'
           })
         })
       })

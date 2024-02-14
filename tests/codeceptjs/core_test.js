@@ -1,21 +1,99 @@
 /* global Feature Scenario */
 
-var assert = require('assert')
+const assert = require('assert')
+const { DEFAULT_WAIT_TIME } = require('./test-config')
 
 Feature('core')
 
-Scenario('should not set inputs name attributes @use-name-attributes', async (I) => {
+Scenario('should hide titles @titleHidden', async ({ I }) => {
+  I.amOnPage('title-hidden.html')
+  I.waitForElement('.je-ready')
+  I.waitForText('root', DEFAULT_WAIT_TIME, '.sr-only')
+  I.waitForText('boolean', DEFAULT_WAIT_TIME, '.sr-only')
+  I.waitForText('integer', DEFAULT_WAIT_TIME, '.sr-only')
+  I.waitForText('number', DEFAULT_WAIT_TIME, '.sr-only')
+  I.waitForText('string', DEFAULT_WAIT_TIME, '.sr-only')
+  I.waitForText('array', DEFAULT_WAIT_TIME, '.sr-only')
+})
+
+Scenario('should show validation errors based on "show_errors" setting @showValidationErrors', async ({ I }) => {
+  I.amOnPage('show-validation-errors.html')
+  I.waitForElement('.je-ready')
+  I.dontSee('Value must be the constant value.')
+  I.dontSee('Value must be the constant value.')
+  I.dontSee('Value must be the constant value.')
+
+  // set invalid values through interaction
+  I.checkOption('[name="root[boolean-checkbox]"]')
+  I.selectOption('[name="root[boolean-select]"]', '1')
+  I.selectOption('[name="root[boolean-choices]"]', '1')
+  I.uncheckOption('[name="root[boolean-checkbox]"]')
+  I.selectOption('[name="root[boolean-select]"]', 'false')
+  I.selectOption('[name="root[boolean-choices]"]', 'false')
+  I.waitForText('Value must be the constant value.', DEFAULT_WAIT_TIME, '[data-schemapath="root.boolean-checkbox"] .invalid-feedback')
+  I.waitForText('Value must be the constant value.', DEFAULT_WAIT_TIME, '[data-schemapath="root.boolean-select"] .invalid-feedback')
+  I.waitForText('Value must be the constant value.', DEFAULT_WAIT_TIME, '[data-schemapath="root.boolean-choices"] .invalid-feedback')
+
+  // set valid values through interaction
+  I.checkOption('[name="root[boolean-checkbox]"]')
+  I.selectOption('[name="root[boolean-select]"]', '1')
+  I.selectOption('[name="root[boolean-choices]"]', '1')
+  I.dontSee('Value must be the constant value.')
+  I.dontSee('Value must be the constant value.')
+  I.dontSee('Value must be the constant value.')
+
+  // set invalid values with setValue
+  I.click('#set-invalid-values')
+  I.waitForText('Value must be the constant value.', DEFAULT_WAIT_TIME, '[data-schemapath="root.boolean-checkbox"] .invalid-feedback')
+  I.waitForText('Value must be the constant value.', DEFAULT_WAIT_TIME, '[data-schemapath="root.boolean-select"] .invalid-feedback')
+  I.waitForText('Value must be the constant value.', DEFAULT_WAIT_TIME, '[data-schemapath="root.boolean-choices"] .invalid-feedback')
+
+  // set valid values with setValue
+  I.click('#set-valid-values')
+  I.waitForInvisible('[data-schemapath="root.boolean-checkbox"] .invalid-feedback')
+  I.waitForInvisible('[data-schemapath="root.boolean-select"] .invalid-feedback')
+  I.waitForInvisible('[data-schemapath="root.boolean-choices"] .invalid-feedback')
+})
+
+Scenario('should listen to @load-events', async ({ I }) => {
+  I.amOnPage('load-events.html')
+  I.waitForElement('.je-ready')
+  I.waitForText('/tests/pages/../fixtures/basic_person.json')
+  I.waitForText('{"title":"Person","type":"object","id":"person","properties":{"name":{"type":"string","description":"First and Last name","minLength":4},"age":{"type":"integer","default":21,"minimum":18,"maximum":99},"gender":{"type":"string","enum":["male","female","other"]}}}')
+  I.waitForText('/tests/pages/../fixtures/person.json')
+  I.waitForText('{"$ref":"../fixtures/basic_person.json","properties":{"location":{"type":"object","title":"Location","properties":{"city":{"type":"string"},"state":{"type":"string"},"citystate":{"type":"string","description":"This is generated automatically from the previous two fields","template":"{{city}}, {{state}}","watch":{"city":"person.location.city","state":"person.location.state"}}}},"pets":{"type":"array","format":"table","title":"Pets","uniqueItems":true,"items":{"type":"object","properties":{"type":{"type":"string","enum":["cat","dog","bird","reptile","other"],"default":"dog"},"name":{"type":"string"},"fixed":{"type":"boolean","title":"spayed / neutered"}}}}}}')
+  I.waitForText('All schemas loaded')
+})
+
+Scenario('should set per-editor options @per-editor-options', async ({ I }) => {
+  I.amOnPage('per-editor-options.html')
+  I.waitForElement('.je-ready')
+  I.waitForElement('[title="Expand"]')
+  I.dontSeeElement('[title="Collapse"]')
+  I.dontSeeElement('.card')
+})
+
+Scenario('should set container attributes @container-attributes', async ({ I }) => {
+  I.amOnPage('container-attributes.html')
+  I.waitForElement('.je-ready')
+  I.waitForElement('.container-class')
+  I.dontSeeElement('[data-schematype="blank"]')
+  I.dontSeeElement('[data-schemapath="blank"]')
+  I.dontSeeElement('[data-schemaid="blank"]')
+})
+
+Scenario('should not set inputs name attributes @use-name-attributes', async ({ I }) => {
   I.amOnPage('use-name-attributes.html')
   I.waitForElement('.je-ready')
   I.dontSeeElement('[name]')
 })
 
-Scenario('should have class je-ready when ready @core @ready', async (I) => {
+Scenario('should have class je-ready when ready @core @ready', async ({ I }) => {
   I.amOnPage('ready.html')
   I.waitForElement('.je-ready')
 })
 
-Scenario('should Disable and enable entire form', async (I) => {
+Scenario('should Disable and enable entire form', async ({ I }) => {
   I.amOnPage('core.html')
   I.seeElement('[data-schemapath="root.name"] input')
   I.seeElement('[data-schemapath="root.age"] input')
@@ -27,7 +105,7 @@ Scenario('should Disable and enable entire form', async (I) => {
   I.seeElement('[data-schemapath="root.name"] input:not(:disabled)')
 })
 
-Scenario('should Disable and enable part of the form', async (I) => {
+Scenario('should Disable and enable part of the form', async ({ I }) => {
   I.amOnPage('core.html')
   I.seeElement('[data-schemapath="root.name"] input')
   I.seeElement('[data-schemapath="root.age"] input')
@@ -37,45 +115,45 @@ Scenario('should Disable and enable part of the form', async (I) => {
   I.seeElement('[data-schemapath="root.name"] input:not(:disabled)')
 })
 
-Scenario('should destroy', async (I) => {
+Scenario('should destroy', async ({ I }) => {
   I.amOnPage('core.html')
   I.seeElement('[data-schemapath="root"]')
   I.click('destroy')
   I.dontSeeElement('[data-schemapath="root"]')
 })
 
-Scenario('should set and get form value', async (I) => {
+Scenario('should set and get form value', async ({ I }) => {
   I.amOnPage('core.html')
   I.click('.get-value')
-  assert.equal(await I.grabValueFrom('.value'), '{"age":18,"name":"Francesco Avizzano"}')
+  I.waitForValue('.value', '{"age":18,"name":"Francesco Avizzano"}')
   I.click('.set-value')
   I.click('.get-value')
-  assert.equal(await I.grabValueFrom('.value'), '{"age":40,"name":"John Smith"}')
+  I.waitForValue('.value', '{"age":40,"name":"John Smith"}')
 })
 
-Scenario('should set and get individual values', async (I) => {
+Scenario('should set and get individual values', async ({ I }) => {
   I.amOnPage('core.html')
   I.click('.get-individual-value')
-  assert.equal(await I.grabValueFrom('.value'), '"Francesco Avizzano"')
+  I.waitForValue('.value', '"Francesco Avizzano"')
   I.click('.set-individual-value')
-  assert.equal(await I.grabValueFrom('.value'), '"john kaminski"')
+  I.waitForValue('.value', '"john kaminski"')
 })
 
-Scenario('should watch a specific field for changes', async (I) => {
+Scenario('should watch a specific field for changes @core @change', async ({ I }) => {
   I.amOnPage('core.html')
   I.dontSeeElement('.name-changed')
   I.click('.set-individual-value')
-  I.seeElement('.name-changed')
+  I.waitForElement('.name-changed')
 })
 
-Scenario('should watch form for changes', async (I) => {
+Scenario('should watch form for changes @core @change', async ({ I }) => {
   I.amOnPage('core.html')
   I.dontSeeElement('.form-changed')
   I.click('.set-value')
-  I.seeElement('.form-changed')
+  I.waitForElement('.form-changed')
 })
 
-Scenario('should change the form if form_name_root option is set @core', async (I) => {
+Scenario('should change the form if form_name_root option is set @core', async ({ I }) => {
   I.amOnPage('form-name.html')
   I.see('Property must be set.', '.invalid-feedback')
   I.seeElement('[data-schemapath="form_1"]')
@@ -98,20 +176,21 @@ Scenario('should change the form if form_name_root option is set @core', async (
   I.click('[for="form_2[1]"]')
   I.dontSee('Property must be set.', '.invalid-feedback')
   I.click('#get-value-form-1')
-  assert.equal(await I.grabValueFrom('#value-form-1'), '"yes"')
+  I.waitForValue('#value-form-1', '"yes"')
   I.click('#get-value-form-2')
-  assert.equal(await I.grabValueFrom('#value-form-2'), '"no"')
+  I.waitForValue('#value-form-2', '"no"')
 })
 
-Scenario('should validate against oneOf schemas and display single oneOf and editors error messages @core @oneof', async (I) => {
+Scenario('should validate against oneOf schemas and display single oneOf and editors error messages @core @oneof', async ({ I }) => {
   I.amOnPage('oneof.html')
-  I.waitForText('Object is missing the required property \'p4\'', '.alert-danger')
-  I.waitForText('Value must validate against exactly one of the provided schemas. It currently validates against 0 of the schemas.', '.alert-danger')
-  I.waitForText('Object is missing the required property \'p1\'', '.alert-danger')
-  I.waitForText('Object is missing the required property \'p2\'', '.alert-danger')
-  I.waitForText('Property must be set.', '[data-schemapath="root.p4"] .invalid-feedback')
-  I.waitForText('Property must be set.', '[data-schemapath="root.p5.p1"] .invalid-feedback')
-  I.waitForText('Property must be set.', '[data-schemapath="root.p5.p2"] .invalid-feedback')
+  I.waitForElement('.je-ready')
+  I.waitForText('Object is missing the required property \'p4\'', DEFAULT_WAIT_TIME, '.alert-danger')
+  I.waitForText('Value must validate against exactly one of the provided schemas. It currently validates against 0 of the schemas.', DEFAULT_WAIT_TIME, '.alert-danger')
+  I.waitForText('Object is missing the required property \'p1\'', DEFAULT_WAIT_TIME, '.alert-danger')
+  I.waitForText('Object is missing the required property \'p2\'', DEFAULT_WAIT_TIME, '.alert-danger')
+  I.waitForText('Property must be set.', DEFAULT_WAIT_TIME, '[data-schemapath="root.p4"] .invalid-feedback')
+  I.waitForText('Property must be set.', DEFAULT_WAIT_TIME, '[data-schemapath="root.p5.p1"] .invalid-feedback')
+  I.waitForText('Property must be set.', DEFAULT_WAIT_TIME, '[data-schemapath="root.p5.p2"] .invalid-feedback')
   I.fillField('root[p4]', 'to')
   I.fillField('root[p5][p1]', 'to')
   I.fillField('root[p5][p2]', 'to')
@@ -120,9 +199,9 @@ Scenario('should validate against oneOf schemas and display single oneOf and edi
   I.dontSee('Object is missing the required property \'p4\'', '.alert-danger')
   I.dontSee('Object is missing the required property \'p1\'', '.alert-danger')
   I.dontSee('Object is missing the required property \'p2\'', '.alert-danger')
-  I.waitForText('Value must be at least 4 characters long.', '[data-schemapath="root.p4"] .invalid-feedback')
-  I.waitForText('Value must be at least 4 characters long.', '[data-schemapath="root.p5.p1"] .invalid-feedback')
-  I.waitForText('Value must be at least 4 characters long.', '[data-schemapath="root.p5.p2"] .invalid-feedback')
+  I.waitForText('Value must be at least 4 characters long.', DEFAULT_WAIT_TIME, '[data-schemapath="root.p4"] .invalid-feedback')
+  I.waitForText('Value must be at least 4 characters long.', DEFAULT_WAIT_TIME, '[data-schemapath="root.p5.p1"] .invalid-feedback')
+  I.waitForText('Value must be at least 4 characters long.', DEFAULT_WAIT_TIME, '[data-schemapath="root.p5.p2"] .invalid-feedback')
   I.fillField('root[p4]', 'todo')
   I.fillField('root[p5][p1]', 'todo')
   I.fillField('root[p5][p2]', 'todo')
@@ -133,16 +212,17 @@ Scenario('should validate against oneOf schemas and display single oneOf and edi
   I.dontSee('Value must be at least 4 characters long.', '[data-schemapath="root.p5.p2"] .invalid-feedback')
 })
 
-Scenario('should validate against anyOf schemas and display single anyOf and editors error messages @core @anyof', async (I) => {
+Scenario('should validate against anyOf schemas and display single anyOf and editors error messages @core @anyof', async ({ I }) => {
   I.amOnPage('anyof.html')
-  I.dontSeeElement('.alert-danger')
+  I.waitForElement('.je-ready')
+  I.waitForElement('.alert-danger')
   I.selectOption('.je-switcher', 'Value, number')
-  I.dontSeeElement('.alert-danger')
+  I.waitForElement('.alert-danger')
   I.selectOption('.je-switcher', 'Value, null')
-  I.dontSeeElement('.alert-danger')
+  I.waitForElement('.alert-danger')
   I.selectOption('.je-switcher', 'Value, string')
-  I.waitForText('Object is missing the required property \'age\'', '.alert-danger')
-  I.waitForText('Property must be set.', '[data-schemapath="root.age"] .invalid-feedback')
+  I.waitForText('Object is missing the required property \'age\'', DEFAULT_WAIT_TIME, '.alert-danger')
+  I.waitForText('Property must be set.', DEFAULT_WAIT_TIME, '[data-schemapath="root.age"] .invalid-feedback')
   I.fillField('root[age]', 'to')
   I.click('Get Value')
   I.wait(3)
@@ -150,14 +230,92 @@ Scenario('should validate against anyOf schemas and display single anyOf and edi
   I.dontSee('Property must be set.', '[data-schemapath="root.age"] .invalid-feedback')
 })
 
-Scenario('should display anyOf and oneOf error messages in the correct places @848', async (I) => {
-  I.amOnPage('issues/issue-gh-848.html')
-  I.selectOption('.je-switcher', 'Value, string')
-  I.waitForElement('[data-schemapath="root.list"] .invalid-feedback', 5)
-  I.dontSeeElement('[data-schemapath="root.list_group"] .invalid-feedback', 5)
+Scenario('should keep only existent values @core @anyof @keep_only_existing_values', async ({ I }) => {
+  I.amOnPage('keep_only_existing_values.html')
+  I.waitForElement('.je-ready')
+  I.waitForValue('#value', '{"name":"Afred","surname":"hitchcock","zip":"12345"}')
+  I.selectOption('.je-switcher', 'object 2')
+  I.waitForValue('#value', '{"name":"Afred","surname":"hitchcock","other_zip":""}')
 })
 
-Scenario('should validate against oneOf schemas and display single oneOf and editors error messages @core @translate-property', async (I) => {
+Scenario('should display anyOf and oneOf error messages in the correct places @848', async ({ I }) => {
+  I.amOnPage('issues/issue-gh-848.html')
+  I.selectOption('.je-switcher', 'Value, string')
+  I.waitForElement('[data-schemapath="root.list"] .invalid-feedback', DEFAULT_WAIT_TIME)
+  I.dontSeeElement('[data-schemapath="root.list_group"] .invalid-feedback', DEFAULT_WAIT_TIME)
+})
+
+Scenario('Should switch between all json 7 data types in @oneof and display error messages for each one @core', async ({ I }) => {
+  I.amOnPage('oneof-2.html')
+  I.waitForElement('.je-ready')
+
+  I.selectOption('.je-switcher', 'Value, string')
+  I.waitForValue('#value', '{"test":""}')
+  I.waitForText('Value must validate against exactly one of the provided schemas.')
+  I.waitForText('Value must be the constant value')
+
+  I.selectOption('.je-switcher', 'Value, boolean')
+  I.waitForValue('#value', '{"test":false}')
+  I.waitForText('Value must validate against exactly one of the provided schemas.')
+  I.waitForText('Value must be the constant value')
+
+  I.selectOption('.je-switcher', 'Value, array')
+  I.waitForValue('#value', '{"test":[]}')
+  I.waitForText('Value must validate against exactly one of the provided schemas.')
+  I.waitForText('Value must be the constant value')
+
+  I.selectOption('.je-switcher', 'Value, object')
+  I.waitForValue('#value', '{"test":{}}')
+  I.waitForText('Value must validate against exactly one of the provided schemas.')
+  I.waitForText('Value must be the constant value')
+  I.waitForText('Object is missing the required property \'test\'')
+
+  I.selectOption('.je-switcher', 'Value, number')
+  I.waitForValue('#value', '{"test":0}')
+  I.waitForText('Value must validate against exactly one of the provided schemas.')
+  I.waitForText('Value must be the constant value')
+
+  I.selectOption('.je-switcher', 'Value, integer')
+  I.waitForValue('#value', '{"test":0}')
+  I.waitForText('Value must validate against exactly one of the provided schemas.')
+  I.waitForText('Value must be the constant value')
+
+  I.selectOption('.je-switcher', 'Value, null')
+  I.waitForValue('#value', '{"test":null}')
+})
+
+Scenario('Should switch between all json 7 data types in @anyof and display error messages for each one @core', ({ I }) => {
+  I.amOnPage('anyof-2.html')
+  I.waitForElement('.je-ready')
+
+  I.waitForValue('#value', '{"test":""}')
+  I.waitForText('Value must validate against at least one of the provided schemas')
+
+  I.selectOption('.je-switcher', 'Value, boolean')
+  I.waitForValue('#value', '{"test":false}')
+  I.waitForText('Value must validate against at least one of the provided schemas')
+
+  I.selectOption('.je-switcher', 'Value, array')
+  I.waitForValue('#value', '{"test":[]}')
+  I.waitForText('Value must validate against at least one of the provided schemas')
+
+  I.selectOption('.je-switcher', 'Value, object')
+  I.waitForValue('#value', '{"test":{}}')
+  I.waitForText('Value must validate against at least one of the provided schemas')
+
+  I.selectOption('.je-switcher', 'Value, number')
+  I.waitForValue('#value', '{"test":0}')
+  I.waitForText('Value must validate against at least one of the provided schemas')
+
+  I.selectOption('.je-switcher', 'Value, integer')
+  I.waitForValue('#value', '{"test":0}')
+  I.waitForText('Value must validate against at least one of the provided schemas')
+
+  I.selectOption('.je-switcher', 'Value, null')
+  I.waitForValue('#value', '{"test":null}')
+})
+
+Scenario('should validate against oneOf schemas and display single oneOf and editors error messages @core @translate-property', async ({ I }) => {
   I.amOnPage('translate-property.html?lang=en')
   I.waitForText('Object Title')
   I.waitForText('Object Description')
@@ -227,7 +385,7 @@ Scenario('should validate against oneOf schemas and display single oneOf and edi
   I.seeInSource('Rating Info Text (but in german)')
 })
 
-Scenario('should load internal schema definitions, external schema definitions and external schema properties @core @references', async (I) => {
+Scenario('should load internal schema definitions, external schema definitions and external schema properties @core @references', async ({ I }) => {
   I.amOnPage('references.html')
   I.waitForText('References JSON Editor Example')
 
@@ -256,21 +414,21 @@ Scenario('should load internal schema definitions, external schema definitions a
     '../fixtures/string.json',
     '../fixtures/definitions.json',
     '../fixtures/basic_person.json',
-    '../fixtures/person.json',
+    '../fixtures/person.json'
   ]
   for (const path of schemaPaths) {
-    let key = 'je-cache::' + currentPath + path;
+    const key = 'je-cache::' + currentPath + path
 
     const item = await I.executeScript(function (storageKey) {
-      return window.localStorage.getItem(storageKey);
+      return window.localStorage.getItem(storageKey)
     }, key)
     const itemDecoded = JSON.parse(item)
-    assert.equal(itemDecoded.cacheBuster, 'abc123');
-    assert(itemDecoded, 'Cached schema found');
+    assert.strictEqual(itemDecoded.cacheBuster, 'abc123')
+    assert(itemDecoded, 'Cached schema found')
   }
 })
 
-Scenario('should override error messages if specified in schema options @core @errors-messages', async (I) => {
+Scenario('should override error messages if specified in schema options @core @errors-messages', async ({ I }) => {
   I.amOnPage('error-messages.html')
   I.waitForText('Error Messages')
 

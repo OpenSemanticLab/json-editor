@@ -1,4 +1,5 @@
 import { resolvers } from './resolvers.js'
+import { editors } from './editors/index.js'
 
 /* default theme */
 const theme = 'html'
@@ -12,7 +13,6 @@ const callbacks = {}
 const themes = {}
 const templates = {}
 const iconlibs = {}
-const editors = {}
 const languages = {}
 // eslint-disable-next-line camelcase
 const custom_validators = []
@@ -101,6 +101,20 @@ languages.en = {
   * @variables This key takes one variable: The maximum character count
   */
   error_maxLength: 'Value must be at most {{0}} characters long',
+  /**
+   * When no array items validates the contains schema
+   */
+  error_contains: 'No items match contains',
+  /**
+   * When an array have too few items that validate agaist contains schema
+   * @variables This key takes two variable: The valid items count and the minContains value
+   */
+  error_minContains: 'Contains match count {{0}} is less than minimum contains count of {{1}}',
+  /**
+   * When an array have too many items that validate agaist contains schema
+   * @variables This key takes two variable: The valid items count and the maxContains value
+   */
+  error_maxContains: 'Contains match count {{0}} exceeds maximum contains count of {{1}}',
   /**
   * When a value does not have enough characters
   * @variables This key takes one variable: The minimum character count
@@ -230,6 +244,14 @@ languages.en = {
   */
   error_hostname: 'The hostname has the wrong format',
   /**
+   * When uploads max size limit is exceeded
+   */
+  upload_max_size: 'Filesize too large. Max size is ',
+  /**
+   * When the mime type does not match the type of the file
+   */
+  upload_wrong_file_format: 'Wrong file format. Allowed format(s): ',
+  /**
   * Text/Title on Save button
   */
   button_save: 'Save',
@@ -337,7 +359,11 @@ languages.en = {
   /**
   * Warning when deleting a node
   */
-  button_delete_node_warning: 'Are you sure you want to remove this node?'
+  button_delete_node_warning: 'Are you sure you want to remove this item?',
+  /**
+   * Warning when deleting a node
+   */
+  table_controls: 'Controls'
 }
 
 /* Default per-editor options */
@@ -384,7 +410,10 @@ const options = {
   use_name_attributes: true,
   prompt_before_delete: true,
   use_default_values: true,
-  max_depth: 0
+  max_depth: 0,
+  button_state_mode: 1,
+  case_sensitive_property_search: true,
+  show_errors: 'interaction'
 }
 
 /* This assignment was previously in index.js but makes more sense here */

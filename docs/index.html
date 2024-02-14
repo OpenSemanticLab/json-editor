@@ -4,23 +4,26 @@
     <meta charset="utf-8"/>
     <title>JSON Editor Interactive Example</title>
     <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.14.0/src-noconflict/ace.js"></script>
     <script src="./polyfills/assign.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+    <script src="./scripts/ajv-validator.js"></script>
     <link rel='stylesheet' id='theme-link'>
     <link rel='stylesheet' id='iconlib-link'>
 </head>
 <body>
-<div class='container grid-xl'>
+<div class="container grid-xl" style="padding-top: 15px; padding-bottom: 30px;">
     <div class="row columns md:flex">
-        <div class='col-8 col-md-8 w-8/12'>
+        <div class='col-7 col-md-7 w-7/12'>
             <h1>Editor</h1>
             <p>Below is the editor generated from the JSON Schema.</p>
             <div id="json-editor-form"></div>
         </div>
-        <div class='col-4 col-md-4 w-4/12'>
+        <div class='col-5 col-md-5 w-5/12'>
             <div>
                 <a class="btn btn-primary" id="direct-link" title="preserves schema, value, and options">Direct Link</a>
-                <a class="btn btn-secondary" href="?" title="reload editor with default example settings">reset</a>
+                <a class="btn btn-secondary" href="?" title="reload editor with default example settings">Reset</a>
+                <a class="btn btn-secondary" href="https://github.com/json-editor/json-editor" title="github" target="_blank">GitHub</a>
             </div>
             <h2>JSON Output</h2>
             <p>You can also make changes to the JSON here and set the value in the editor by clicking "Update Form"</p>
@@ -36,6 +39,10 @@
             <div>
                 <label for="boolean-options-select">Boolean options</label><br>
                 <select multiple size="15" id="boolean-options-select" class="form-control browser-default">
+                    <option value='use_default_values'>Default values based on the "type"</option>
+                    <option value='use_name_attributes'>Use name attributes</option>
+                    <option value='prompt_before_delete'>Prompt before delete</option>
+                    <option value='case_sensitive_property_search'>Case sensitive property search</option>
                     <option value='required_by_default'>Object properties required by default</option>
                     <option value='display_required_only'>Only show required properties by default</option>
                     <option value='show_opt_in'>Show optional properties (with checkbox)</option>
@@ -59,6 +66,7 @@
                     <option value='barebones'>Barebones</option>
                     <option value='bootstrap3'>Bootstrap 3</option>
                     <option value='bootstrap4'>Bootstrap 4</option>
+                    <option value='bootstrap5'>Bootstrap 5</option>
                     <option value='html'>HTML</option>
                     <option value='spectre'>Spectre</option>
                     <option value='tailwind'>Tailwind</option>
@@ -73,6 +81,8 @@
                     <option value='jqueryui'>jQuery UI</option>
                     <option value='openiconic'>Open Iconic</option>
                     <option value='spectre'>Spectre</option>
+                    <option value='spectre'>Spectre</option>
+                    <option value='bootstrap'>Bootstrap</option>
                 </select>
             </div>
             <div>
@@ -111,19 +121,34 @@
             </div>
         </div>
     </div>
+
+    <h2>Schema</h2>
+
     <div class="row columns md:flex">
-        <div class='col-12 col-md-12 w-12/12'>
-            <h2>Schema</h2>
-            <label for="schema-textarea">You can change the schema and see how the generated form looks. After you make
-                changes, click "Update Schema"</label>
+        <div class='col-7 col-md-7 w-7/12'>
+            <label for="schema-textarea">You can change the schema and see how the generated form looks. After you make changes, click "Update Schema"</label>
             <button class='btn btn-primary btn-block' id='setschema'>Update Schema</button>
-            <textarea id='schema-textarea' rows="30" style="width: 100%; font-family: monospace;"
-                      class='form-control'></textarea>
+            <textarea id='schema-textarea' style="height: 100vh;"></textarea>
+        </div>
+
+        <div class='col-5 col-md-5 w-5/12'>
+            <label for="je-errors-textarea">
+                <span>AJV (JE meta-schema): </span>
+                <code id="je-errors-count"></code>
+            </label>
+            <textarea id='je-errors-textarea'></textarea>
+
+            <br>
+
+            <label for="ajv-errors-textarea">
+                <span>AJV (meta-schema-2020-12): </span>
+                <code id="ajv-errors-count"></code>
+            </label>
+            <textarea id='ajv-errors-textarea'></textarea>
         </div>
     </div>
 </div>
 <script>
-
   var defaultSchema = {
     'title': 'Person',
     'type': 'object',
@@ -234,13 +259,13 @@
 
   var data = {}
 
-  var defaultOptions = {
+  var defaultOptions = Object.assign({}, JSONEditor.defaults.options, {
     iconlib: 'fontawesome5',
     object_layout: 'normal',
     schema: defaultSchema,
     show_errors: 'interaction',
-    theme: 'bootstrap4'
-  }
+    theme: 'bootstrap4',
+  })
 
   var jsoneditor = null
   var directLink = document.querySelector('#direct-link')
@@ -252,14 +277,49 @@
   var libSelect = document.querySelector('#lib-select')
   var jsonEditorForm = document.querySelector('#json-editor-form')
   var objectLayoutSelect = document.querySelector('#object-layout-select')
-  var outputTextarea = document.querySelector('#output-textarea')
-  var schemaTextarea = document.querySelector('#schema-textarea')
   var setSchema = document.querySelector('#setschema')
   var setValue = document.querySelector('#setvalue')
   var showErrorsSelect = document.querySelector('#show-errors-select')
   var themeSelect = document.querySelector('#theme-select')
   var themeLink = document.querySelector('#theme-link')
   var validateTextarea = document.querySelector('#validate-textarea')
+
+  var aceConfig = {
+    mode: 'ace/mode/json',
+    maxLines: Infinity,
+    minLines: 5,
+    showFoldWidgets: false,
+    showPrintMargin: false
+  }
+
+  var outputTextarea = ace.edit('output-textarea', aceConfig)
+  var schemaTextarea = ace.edit('schema-textarea', aceConfig)
+  var ajvErrorsTextarea = ace.edit('ajv-errors-textarea', aceConfig)
+  var jeErrorsTextarea = ace.edit('je-errors-textarea', aceConfig)
+  var ajvErrorsCount = document.querySelector('#ajv-errors-count')
+  var jeErrorsCount = document.querySelector('#je-errors-count')
+  var ajv = new AjvValidator()
+
+  const validateSchema = () => {
+    const dataToValidate = JSON.parse(schemaTextarea.getValue())
+    let errors
+
+    // AJV validation
+    ajvErrorsCount.textContent = '0'
+    errors = ajv.validate202012(dataToValidate)
+    ajvErrorsTextarea.setValue(JSON.stringify(errors, null, 2))
+    ajvErrorsCount.textContent = JSON.stringify(errors.length)
+    schemaTextarea.clearSelection(1)
+    ajvErrorsTextarea.clearSelection(1)
+
+    // JE validation with AJV
+    jeErrorsCount.textContent = '0'
+    errors = ajv.validateJeMetaSchema(dataToValidate)
+    jeErrorsTextarea.setValue(JSON.stringify(errors, null, 2))
+    jeErrorsCount.textContent = JSON.stringify(errors.length)
+    schemaTextarea.clearSelection(1)
+    jeErrorsTextarea.clearSelection(1)
+  }
 
   /* -------------------------------------------------------------- parse url */
 
@@ -299,13 +359,16 @@
 
   var refreshUI = function () {
     // schema
-    schemaTextarea.value = JSON.stringify(data.options.schema, null, 2)
+    schemaTextarea.setValue(JSON.stringify(data.options.schema, null, 2))
+    schemaTextarea.clearSelection(1)
+    validateSchema()
 
     // theme
     var themeMap = {
       barebones: '',
       bootstrap3: 'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css',
       bootstrap4: 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css',
+      bootstrap5: 'https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css',
       html: '',
       spectre: 'https://unpkg.com/spectre.css/dist/spectre.min.css',
       tailwind: 'https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css'
@@ -320,7 +383,8 @@
       fontawesome5: 'https://use.fontawesome.com/releases/v5.6.1/css/all.css',
       jqueryui: 'https://code.jquery.com/ui/1.10.3/themes/south-street/jquery-ui.css',
       openiconic: 'https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic.min.css',
-      spectre: 'https://unpkg.com/spectre.css/dist/spectre-icons.min.css'
+      spectre: 'https://unpkg.com/spectre.css/dist/spectre-icons.min.css',
+      bootstrap: 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css'
     }
     iconlibLink.href = iconLibMap[data.options.iconlib]
     iconlibSelect.value = data.options.iconlib
@@ -392,6 +456,7 @@
       },
       selectize: {
         js: [
+          'https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js',
           'https://cdn.jsdelivr.net/npm/selectize@0.12.6/dist/js/standalone/selectize.min.js'
         ],
         css: [
@@ -490,7 +555,8 @@
     jsoneditor.on('change', function () {
       // output
       var json = jsoneditor.getValue()
-      outputTextarea.value = JSON.stringify(json, null, 2)
+      outputTextarea.setValue(JSON.stringify(json, null, 2))
+      outputTextarea.clearSelection(1)
 
       // validate
       var validationErrors = jsoneditor.validate()
@@ -515,12 +581,13 @@
   /* -------------------------------------------------------- event listeners */
 
   setValue.addEventListener('click', function () {
-    jsoneditor.setValue(JSON.parse(outputTextarea.value))
+    jsoneditor.setValue(JSON.parse(outputTextarea.getValue()))
   })
 
   setSchema.addEventListener('click', function () {
     try {
-      data.options.schema = JSON.parse(schemaTextarea.value)
+      data.options.schema = JSON.parse(schemaTextarea.getValue())
+      validateSchema()
     } catch (e) {
       alert('Invalid Schema: ' + e.message)
       return

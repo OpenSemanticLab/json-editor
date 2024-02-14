@@ -1,13 +1,14 @@
-var assert = require('assert');
+/* global Feature Scenario */
 
-Feature('schemaloader');
+const { DEFAULT_WAIT_TIME } = require('./test-config')
 
-Scenario('resolving nested external URNs', async (I) => {
-  I.amOnPage('urn.html');
-  I.waitForElement('[data-schemapath="root"] h3', 10);
+Feature('schemaloader')
+
+Scenario('resolving nested external URNs', async ({ I }) => {
+  I.amOnPage('urn.html')
+  I.waitForElement('[data-schemapath="root"] span', DEFAULT_WAIT_TIME)
   I.seeElementInDOM('[data-schemapath="root.fname"]')
   I.seeElementInDOM('[data-schemapath="root.lname"]')
-
   I.click('.get-value')
-  assert.equal(await I.grabValueFrom('.value'), '{"fname":"John","lname":"Doe"}');
-});
+  I.waitForValue('.value', '{"fname":"John","lname":"Doe"}')
+})

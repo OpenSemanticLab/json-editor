@@ -93,7 +93,7 @@ export class ArrayEditor extends AbstractEditor {
 
   build () {
     if (!this.options.compact) {
-      this.header = document.createElement('label')
+      this.header = document.createElement('span')
       this.header.textContent = this.getTitle()
       this.title = this.theme.getHeader(this.header, this.getPathDepth())
       this.container.appendChild(this.title)
@@ -154,6 +154,14 @@ export class ArrayEditor extends AbstractEditor {
 
     /* Add controls */
     this.addControls()
+  }
+
+  postBuild () {
+    super.postBuild()
+
+    if (this.schema.readOnly || this.schema.readonly) {
+      this.disable()
+    }
   }
 
   onChildEditorChange (editor) {
@@ -275,7 +283,7 @@ export class ArrayEditor extends AbstractEditor {
   }
 
   empty (hard) {
-    if (!this.rows) return
+    if (this.rows === null) return
 
     this.rows.forEach((row, i) => {
       if (hard) {
@@ -285,6 +293,12 @@ export class ArrayEditor extends AbstractEditor {
       }
       this.rows[i] = null
     })
+    if (hard) {
+      for (let j = this.rows.length; j < this.row_cache.length; j++) {
+        this.destroyRow(this.row_cache[j], true)
+        this.row_cache[j] = null
+      }
+    }
     this.rows = []
     if (hard) this.row_cache = []
   }
@@ -342,7 +356,12 @@ export class ArrayEditor extends AbstractEditor {
     value = this.ensureArraySize(value)
 
     const serialized = JSON.stringify(value)
-    if (serialized === this.serialized) return
+    if (serialized === this.serialized) {
+      if (initial) {
+        this.refreshValue(initial)
+      }
+      return
+    }
 
     value.forEach((val, i) => {
       if (this.rows[i]) {
@@ -383,36 +402,47 @@ export class ArrayEditor extends AbstractEditor {
     /* TODO: sortable */
   }
 
-  setVisibility (element, display) {
-    element.style.display = display ? '' : 'none'
+  setButtonState (element, display) {
+    const buttonStateMode = this.options.button_state_mode || this.jsoneditor.options.button_state_mode
+
+    switch (buttonStateMode) {
+      case 1:
+        element.style.display = display ? '' : 'none'
+        break
+      case 2:
+        element.disabled = !display
+        break
+      default:
+        element.style.display = display ? '' : 'none'
+    }
   }
 
   setupButtons (minItems) {
     const controlsNeeded = []
 
     if (!this.value.length) {
-      this.delete_last_row_button.style.display = 'none'
-      this.remove_all_rows_button.style.display = 'none'
+      this.setButtonState(this.delete_last_row_button, false)
+      this.setButtonState(this.remove_all_rows_button, false)
     } else if (this.value.length === 1) {
-      this.remove_all_rows_button.style.display = 'none'
+      this.setButtonState(this.remove_all_rows_button, false)
 
       /* If there are minItems items in the array, or configured to hide the delete_last_row button, hide the delete button beneath the rows */
       const display = !(minItems || this.hide_delete_last_row_buttons)
-      this.setVisibility(this.delete_last_row_button, display)
+      this.setButtonState(this.delete_last_row_button, display)
       controlsNeeded.push(display)
     } else {
       const display1 = !(minItems || this.hide_delete_last_row_buttons)
-      this.setVisibility(this.delete_last_row_button, display1)
+      this.setButtonState(this.delete_last_row_button, display1)
       controlsNeeded.push(display1)
 
       const display2 = !(minItems || this.hide_delete_all_rows_buttons)
-      this.setVisibility(this.remove_all_rows_button, display2)
+      this.setButtonState(this.remove_all_rows_button, display2)
       controlsNeeded.push(display2)
     }
 
     /* If there are maxItems in the array, hide the add button beneath the rows */
     const display = !((this.getMax() && this.getMax() <= this.rows.length) || this.hide_add_button)
-    this.setVisibility(this.add_row_button, display)
+    this.setButtonState(this.add_row_button, display)
     controlsNeeded.push(display)
 
     return controlsNeeded.some(e => e)
@@ -431,19 +461,19 @@ export class ArrayEditor extends AbstractEditor {
         /* Hide the move down button for the last row */
         if (editor.movedown_button) {
           const display = (i !== this.rows.length - 1)
-          this.setVisibility(editor.movedown_button, display)
+          this.setButtonState(editor.movedown_button, display)
         }
 
         /* Hide the delete button if we have minItems items */
         if (editor.delete_button) {
-          this.setVisibility(editor.delete_button, !minItems)
+          this.setButtonState(editor.delete_button, !minItems)
         }
 
         /* Get the value for this editor */
         this.value[i] = editor.getValue()
       })
 
-      if (!this.collapsed && this.setupButtons(minItems)) {
+      if (this.setupButtons(minItems) && !this.collapsed) {
         this.controls.style.display = 'inline-block'
       } else {
         this.controls.style.display = 'none'
@@ -519,6 +549,7 @@ export class ArrayEditor extends AbstractEditor {
       let newActiveTab = null
 
       const editor = this.rows[i]
+      const editorValue = editor.getValue()
 
       this.setValue(newval)
 
@@ -534,7 +565,7 @@ export class ArrayEditor extends AbstractEditor {
       }
 
       this.onChange(true)
-      this.jsoneditor.trigger('deleteRow', editor)
+      this.jsoneditor.trigger('deleteRow', editorValue)
     })
 
     if (holder) {
@@ -573,6 +604,7 @@ export class ArrayEditor extends AbstractEditor {
       this.setValue(value)
       this.refreshValue(true)
       this.onChange(true)
+      this.jsoneditor.trigger('copyRow', this.rows[i - 1])
     })
 
     holder.appendChild(button)
@@ -676,8 +708,8 @@ export class ArrayEditor extends AbstractEditor {
     button.addEventListener('click', e => {
       e.preventDefault()
       e.stopPropagation()
-      if (this.panel) this.setVisibility(this.panel, this.collapsed)
-      if (this.tabs_holder) this.setVisibility(this.tabs_holder, this.collapsed)
+      if (this.panel) this.setButtonState(this.panel, this.collapsed)
+      if (this.tabs_holder) this.setButtonState(this.tabs_holder, this.collapsed)
       if (this.collapsed) {
         this.collapsed = false
         this.row_holder.style.display = rowHolderDisplay
@@ -734,7 +766,7 @@ export class ArrayEditor extends AbstractEditor {
       const rows = this.getValue()
       let newActiveTab = null
 
-      const editor = rows.pop()
+      const editorValue = rows.pop()
 
       this.setValue(rows)
 
@@ -748,7 +780,7 @@ export class ArrayEditor extends AbstractEditor {
       }
 
       this.onChange(true)
-      this.jsoneditor.trigger('deleteRow', editor)
+      this.jsoneditor.trigger('deleteRow', editorValue)
     })
     this.controls.appendChild(button)
     return button
@@ -765,10 +797,12 @@ export class ArrayEditor extends AbstractEditor {
         return false
       }
 
+      const values = this.getValue()
+
       this.empty(true)
       this.setValue([])
       this.onChange(true)
-      this.jsoneditor.trigger('deleteAllRows')
+      this.jsoneditor.trigger('deleteAllRows', values)
     })
     this.controls.appendChild(button)
     return button
