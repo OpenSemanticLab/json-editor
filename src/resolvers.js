@@ -134,4 +134,4 @@ const colorPicker = schema => schema.type === 'string' && schema.format === 'col
 const tree = schema => schema.type === 'string' && schema.format === 'tree' && 'tree'
 
 /* Export resolvers in order of discovery, first to last */
-export const resolvers = [colorPicker, ip, ace, xhtml, markdown, jodit, autoComplete, uuid, info, button, stepper, describeBy, starratings, date, oneOf, ifThenElse, arraysOfStrings, enumeratedProperties, enumSource, table, upload, base64, any, boolean, signature, primitive, object, defaultResolver, defaultResolverString, tree]
+export const resolvers = [tree, colorPicker, ip, ace, xhtml, markdown, jodit, autoComplete, uuid, info, button, stepper, describeBy, starratings, date, oneOf, ifThenElse, arraysOfStrings, enumeratedProperties, enumSource, table, upload, base64, any, boolean, signature, primitive, object, defaultResolver, defaultResolverString]
